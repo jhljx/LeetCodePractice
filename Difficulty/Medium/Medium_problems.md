@@ -291,6 +291,8 @@ LeetCode提供的官方题解：[https://leetcode.com/problems/longest-palindrom
 
 因此81题的算法是在33题的第二种算法基础上加上特判条件即可。此外，在写的时候注意一开始要判断nums[mid]是否和target相等，其次才是这**三种互斥条件**的判断。。注意判断完特殊情况后是else if（互斥条件）。
 
+相比于33题不存在相同元素的情况，本题的算法平均情况是O(log n)，最坏可以达到O(n)。
+
 代码如下：
 
     class Solution {
@@ -317,4 +319,171 @@ LeetCode提供的官方题解：[https://leetcode.com/problems/longest-palindrom
             return false;
         }
     };
+
+## 46. Permutations
+
+**题意**：给你一个不包含重复数字的集合，返回该集合所有可能的排列。
+
+**思路**：DFS搜索全排列。需要一个记录已经使用了哪些数字的vector。然后回溯。
+
+## 47. Permutations II
+
+**题意**：给你一个包含重复数字的集合，返回该集合所有可能的排列。
+
+**思路**：DFS搜索全排列。先用unordered_map预处理，防止全排列重复。因为一个位置上只能放不相同的数字才不会导致重复。然后回溯。
+
+## 48. Rotate Image
+
+**题意**：给你一个n \* n的2D矩阵，让你把这个顺时针旋转90度。必须是**就地旋转**，而不能新开辟一个二维数组。
+
+**思路**：不能直接覆盖去旋转，只能考虑矩阵元素之间的交换。然后想到先求出矩阵转置，然后再每一行互换对称位置的元素即可。
+
+## 49. Group Anagrams
+
+**题意**： 给你一个string数组，让你求出这个数组中string由相同字母组成的string的数组的集合。
+例如：  
+
+    Input: ["eat", "tea", "tan", "ate", "nat", "bat"],  
+    Output:  
+    [  
+    ["ate","eat","tea"],  
+    ["nat","tan"],  
+    ["bat"]  
+    ]  
+
+**思路**：可以考虑hash的方法。但是这个也有讲究。可以是`unordered_map<string, vector<string>>`，但是最后要返回`vector<vector<string>>`。为了节省内存，可以构建这样的hash，即`unordered_map<string, int>`。value表示的是该string对应的在最终返回的`vector<vector<string>>`中的外层vector中的下标。然后动态插入string。还有一个trick是先要将当前遍历的string按char排序。
+
+代码如下：
+
+    class Solution {
+    public:
+        vector<vector<string>> groupAnagrams(vector<string>& strs) {
+            unordered_map<string, int> umap;
+            vector<vector<string>> res;
+            int idx = 0;
+            for(auto str : strs)
+            {
+                string keystr = str;
+                sort(keystr.begin(), keystr.end());
+                if(!umap.count(keystr))
+                {
+                    umap[keystr] = idx++;
+                    res.push_back({str});
+                }
+                else
+                {
+                    int vidx = umap[keystr];
+                    res[vidx].push_back(str);
+                }
+            }
+            return res;
+        }
+    };
+
+## 50. Pow(x, n)
+
+**题意**: 求解pow(x, n)，其中x是double，n是int范围内。
+
+**思路**：修改原始的整数快速幂的算法，改成double。然后注意n的范围要用long long。对于n为负数的情况，先变成正数情况求解，最后再取倒数。
+
+## 60. Permutation Sequence
+
+**题意**：集合[1,2,3,...,n]包含总共n!个不同的排列。按照顺序列出全部的排列，比如n = 3的排列为：  
+
+1. "123"
+2. "132"
+3. "213"
+4. "231"
+5. "312"
+6. "321"
+
+给定n和k，返回第k个排列。
+
+**思路**：O(n)的递归查找，根据每一位动态更新当前位数下的排名k。代码如下：
+
+    class Solution {
+    public:
+        string getPermutation(int n, int k) {
+            vector<int> flag(n + 1, 0), cnt(n + 1, 1);
+            for(int i = 1; i <= n; i++) cnt[i] = cnt[i - 1] * i;
+            string res;
+            dfs(n, k, cnt, flag, res);
+            return res;
+        }
+        void dfs(int n, int k, vector<int>& cnt, vector<int>& flag, string& res)
+        {
+            if(n == 0) return;
+            int pos = (k - 1) / cnt[n - 1] + 1, idx = 0;
+            for(int i = 1; i <= flag.size(); i++)
+            {
+                if(!flag[i])
+                {
+                    idx++;
+                    if(idx == pos)
+                    {
+                        flag[i] = 1;
+                        res += (i + '0');
+                        dfs(n - 1, (k - 1) % cnt[n - 1] + 1, cnt, flag, res);
+                        return;  //为了保证O(n)，这里要return
+                    }
+                }
+            }
+        }
+    };
+
+## 62. Unique Paths
+
+**题意**：给定一个$m \times n$的矩阵，一个机器人在左上角，每一次它只能向右走，或者向下走。问走到右下角有几种不同的走法？
+
+**思路**：动态规划递推求解。
+
+## 63. Unique Paths II
+
+**题意**：同62题，只不过矩阵中有些地方为障碍物，0表示可以走的位置，1表示障碍物。从左上角走到右下角有多少种走法？
+
+**思路**：因为有障碍物的存在，所以障碍物的地方dp值可以置为0。所以依然可以用动态规划求解。当然也可以BFS搜索。  
+**这里第一反应还是要想到动态规划，障碍物的产生造成了什么影响。相当于之前可以走到障碍物的步数现在都清零了。即障碍物的状态不能转移到别的状态。**
+
+## 64. Minimum Path Sum
+
+**题意**：给定一个$m \times n$的矩阵，矩阵元素非负，找到一条从左上角到右下角的路径，保证路径上的元素之和最小。每次只能向下走或者向右走。
+
+**思路**：简单动态规划。
+
+## 81. Search in Rotated Sorted Array II
+
+详见33题。
+
+## 96. Unique Binary Search Trees
+
+**题意**：给定一个正整数n，有多少种结构不同的存储1~n这n个数字的二叉搜索树？
+
+**思路**：卡塔兰数，递推求解。注意思考递归公式。从整体往部分上去想，虽然是递推。但是和动态规划的思考方式是一样的，都是考虑整体与部分的关系。需要找到如何划分状态，并且将一个大的问题分成多个子问题。
+
+这里对于n个节点的二叉搜索树，根节点有n种选取方式，当i为根节点的时候，二叉搜索树左边有i - 1个数字，右边有n - i个数字。所以可以得到递推公式为：
+
+$$F(n) = F(0) \* F(n - 1) + F(1) \* F(n - 2) + ... + F(n - 2) \* F(1) + F(n - 1) \* F(0)$$
+
+关键点：
+
+- **根据根节点进行枚举**。。然后根据二叉搜索树的性质计算。。最后发现递推公式是卡特兰数。。
+- 之前做排列的题的启示：**关键的是relative rank比较重要**。。因而枚举谁是节点。。对于剩下的数字。。**只用管个数就可以了，不用管具体是哪些**。。因为总能够分成两组。。（二叉搜索树的特点。。小于i的放i的左边，大于它的放右边）
+
+## 134. Gas Station
+
+**题意**：在一个环形轨道上有n个加油站，第i个加油站的油量是gas[i]。你有一辆汽车，油的存储无限制，从第i个加油站走到第(i + 1)个加油站需要花费的油量为cost[i]。假设你一开始的油量为0。如果你能从一个加油站顺时针走一圈又回到这个加油站，则返回这个加油站的index，否则返回-1。
+
+题目保证了如果存在解，则解唯一。gas数组和cost数组都是非空的而且长度相等，数组中每个元素都是非负数。
+
+**思路**：依次遍历每一个起始的加油站，然后看它能不能走一圈。假设一个起点i，最多能走到j。则可以知道：
+
+$$(gas[i] - cost[i]) + \sum_{k = i + 1} ^ {j} (gas[k] - cost[k]) < 0$$
+
+因为从加油站i可以走到加油站(i + 1)，所以`gas[i] - cost[i] >= 0`。i走不到j + 1，则由上面的公式可知，i到j都走不到j + 1。所以下一次遍历的时候只需要考虑j + 1能否走一圈。这里用到了**贪心的思想**。
+
+然后还需要注意，如何表示一个环形的路径，将原数组复制两份即可。
+
+## 153. Find Minimum in Rotated Sorted Array
+
+详见33题。
 
