@@ -136,6 +136,33 @@ LeetCode提供的官方题解：[https://leetcode.com/problems/longest-palindrom
 
 需要注意其中提到的**Algorithm 4：Expand Around Center**这种扩展方法。根据中心向两边扩展，然后通过O(1)的空间存储最优的信息。这个方法也可以看做是Manacher算法的一个前提。Manacher算法可以说是对这个算法的一种优化。
 
+官方题解中Algorithm 4的Java代码如下：
+
+    class Solution {
+        public String longestPalindrome(String s) {
+            if (s == null || s.length() < 1) return "";
+            int start = 0, end = 0;
+            for (int i = 0; i < s.length(); i++) {
+                int len1 = expandAroundCenter(s, i, i);
+                int len2 = expandAroundCenter(s, i, i + 1);
+                int len = Math.max(len1, len2);
+                if (len > end - start) {
+                    start = i - (len - 1) / 2;
+                    end = i + len / 2;
+                }
+            }
+            return s.substring(start, end + 1);
+        }
+        private int expandAroundCenter(String s, int left, int right) {
+            int L = left, R = right;
+            while (L >= 0 && R < s.length() && s.charAt(L) == s.charAt(R)) {
+                L--;
+                R++;
+            }
+            return R - L - 1;
+        }
+    }
+
 当然，也可以使用Manacher算法来求解最长回文子串。算法复杂度为O(n)。
 
     class Solution {
