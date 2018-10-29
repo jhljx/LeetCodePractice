@@ -1,4 +1,4 @@
-# Problem 1~100 Medium
+# Problem 1~300 Medium
 
 ## 2. Add Two Numbers  
 
@@ -483,7 +483,186 @@ $$(gas[i] - cost[i]) + \sum_{k = i + 1} ^ {j} (gas[k] - cost[k]) < 0$$
 
 然后还需要注意，如何表示一个环形的路径，将原数组复制两份即可。
 
+代码如下：
+
+    class Solution {
+    public:
+        int canCompleteCircuit(vector<int>& gas, vector<int>& cost) {
+            int sz = gas.size();
+            gas.insert(gas.end(), gas.begin(), gas.end());
+            cost.insert(cost.end(), cost.begin(), cost.end());
+            int pos = -1;
+            for(int i = 0; i < sz;)
+            {
+                //cout << i << endl;
+                int j = i + 1, sum = gas[i], flag = 0;
+                for(; j <= i + sz; j++)
+                {
+                    if(sum < cost[j - 1]) break;
+                    if(j == i + sz) {flag = 1, pos = i; break;}
+                    sum += gas[j] - cost[j - 1];
+                }
+                if(flag) break;
+                i = j;
+            }
+            return pos;
+        }
+    };
+
 ## 153. Find Minimum in Rotated Sorted Array
 
 详见33题。
 
+## 187. Repeated DNA Sequences
+
+**题意**：所有的DNA都是由A、G、C、T四个碱基组成，请你找出DNA序列中所有长度为10个字母且出现次数的DNA子串。
+
+**思路**：最朴素的想法肯定是遍历所有的子串，由于子串长度都是10，所以可以想到**滑动窗口方法**。然后使用hash表统计每个字符串的个数。为了降低算法复杂度，少去遍历最终的哈希表，直接动态地将string插入到返回结果的vector中。所以对于之前已经出现过的子串，如果个数置为-1，则不再重复添加。这里的小trick是通过设置-1这样非法的个数来表示**当前子串已经添加到返回结果中**。
+
+代码如下：
+
+    class Solution {
+    public:
+        vector<string> findRepeatedDnaSequences(string s) {
+            unordered_map<string, int> umap;
+            int sz = s.length(), len = 10;
+            string str = s.substr(0, len);
+            umap[str]++;
+            vector<string> res;
+            for(int i = 1; i + len - 1 < sz; i++)
+            {
+                str = str.substr(1, len - 1) + s[i + len - 1];
+                if(umap.count(str) && umap[str] == -1) continue;
+                umap[str]++;
+                if(umap[str] > 1)
+                {
+                    res.push_back(str);
+                    umap[str] = -1;
+                }
+            }
+            return res;
+        }
+    };
+
+## 200. Number of Islands
+
+**题意**：给定一个2d的01矩阵，其中'1'表示陆地，'0'表示水。一个陆地可以向上下左右四个方向延伸（如果这些方向上也是陆地的话）。统计总共的陆地个数。
+
+**思路**：直接使用Flood Fill算法，DFS去求解全1的连通分量。设置一个vis数组即可。只在vis为0的1的位置处进行flood fill，保证算法复杂度为O(n \* m)。
+
+当然用DSU也求全1的连通分量也行。
+
+## 279. Perfect Squares
+
+**题意**： 给你一个正整数n，找到能够由完全平方数(比如1, 4, 9, 16, ...)加和构成n的最小的完全平方数的数量。
+
+比如：n = 12, 12 = 4 + 4 + 4。答案为3。  
+n = 13, 13 = 4 + 9。答案为2。
+
+**思路**: 动态规划。
+
+这里列出自己写的两种不同思路的动态规划。
+
+- 先求出所有在n范围内的完全平方数。这里假设我们已经知道了这些完全平方数，而且只能用这些完全平方数。所以一开始初始化的时候这些完全平方数使用完全平方数构成自己的最小个数就是1。然后通过这些完全平方数去更新得到别的数字。
+
+为了优化效率可以先判断n是不是完全平方数，如果是，直接返回1。
+
+代码如下：
+
+    class Solution {
+    public:
+        int numSquares(int n) {
+            int x = sqrt(n);
+            if(x * x == n) return 1;
+            vector<int> dp(n + 1, 0);
+            vector<int> nums;
+            for(int i = 1; i <= x; i++) nums.push_back(i * i), dp[i * i] = 1;
+            for(int i = 1; i <= n; i++)
+            {
+                if(dp[i])
+                {
+                    for(int j = 0; j < nums.size(); j++)
+                    {
+                        if(i + nums[j] > n) break;
+                        int y = i + nums[j];
+                        dp[y] = (!dp[y]) ? dp[i] + 1 : min(dp[y], dp[i] + 1);
+                    }
+                }
+            }
+            return dp[n];
+        }
+    };
+
+另一种动态规划类似于硬币问题，看一个数字能否由比它小的一个数字加上一个完全平方数构成，初始化的时候全部初始化成无穷大。
+
+    class Solution {
+    public:
+        int numSquares(int n) {
+            int maxp = sqrt(n), inf = 1e9;
+            vector<int> vec, dp(n + 1, inf);
+            for(int i = 1; i <= maxp; i++) vec.push_back(i * i);
+            dp[0] = 0;
+            for(int i = 1; i <= n; i++)
+            {
+                for(int j = 0; j < vec.size(); j++)
+                {
+                    if(i - vec[j] < 0) break;
+                    if(dp[i - vec[j]] != inf)
+                    {
+                        dp[i] = min(dp[i], dp[i - vec[j]] + 1);
+                    }
+                }
+            }
+            return dp[n];
+        }
+    };
+
+两种动态规划的时间复杂度都是O(n * sqrt(n))。
+
+通过看别人的解法发现本题也可以使用BFS来搜索，相当于不考虑子问题的重叠性和最优子结构。
+
+也可以使用数学的方法，有定理支撑：每个自然数都可以表示成4个数字的平方之和。主要使用的定理是`Lagrange's four-square theorem`和`Legendre's three-square theorem`这两个定理。
+
+代码如下：
+
+    class Solution
+    {  
+    private:  
+        int is_square(int n)
+        {  
+            int sqrt_n = (int)(sqrt(n));  
+            return (sqrt_n*sqrt_n == n);  
+        }
+    public:
+        // Based on Lagrange's Four Square theorem, there
+        // are only 4 possible results: 1, 2, 3, 4.
+        int numSquares(int n)
+        {  
+            // If n is a perfect square, return 1.
+            if(is_square(n))
+            {
+                return 1;  
+            }
+            // The result is 4 if and only if n can be written in the
+            // form of 4^k*(8*m + 7). Please refer to
+            // Legendre's three-square theorem.
+            while ((n & 3) == 0) // n%4 == 0  
+            {
+                n >>= 2;  
+            }
+            if ((n & 7) == 7) // n%8 == 7
+            {
+                return 4;
+            }
+            // Check whether 2 is the result.
+            int sqrt_n = (int)(sqrt(n));
+            for(int i = 1; i <= sqrt_n; i++)
+            {  
+                if (is_square(n - i*i))
+                {
+                    return 2;  
+                }
+            }
+            return 3;  
+        }  
+    };

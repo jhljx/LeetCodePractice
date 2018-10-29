@@ -40,7 +40,9 @@
 - 62\. Unique Paths
 - 63\. Unique Paths II
 - 64\. Minimum Path Sum
+- 279\. Perfect Squares
 
 ## Sliding Window
 
 - 3\. Longest Substring Without Repeating Characters
+- 187\. Repeated DNA Sequences
