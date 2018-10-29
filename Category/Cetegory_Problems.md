@@ -11,6 +11,10 @@
 - 3\. Longest Substring Without Repeating Characters
 - 49\. Group Anagrams
 
+## Stack
+
+- 654\. Maximum Binary Tree(笛卡尔树)
+
 ## Strings
 
 - 5\. Longest Palindromic Substring
@@ -24,6 +28,7 @@
 ## Trees
 
 - 654\. Maximum Binary Tree (Recurrence)
+- 655\. Print Binary Tree
 
 ## DSU
 
@@ -38,6 +43,10 @@
 - 33\. Search in Rotated Sorted Array
 - 81\. Search in Rotated Sorted Array II
 - 153\. Find Minimum in Rotated Sorted Array
+
+## Two pointers
+
+- 658\. Find K Closest Elements
 
 ## DFS
 
@@ -59,6 +68,7 @@
 - 96\. Unique Binary Search Trees (递推)
 - 279\. Perfect Squares
 - 647\. Palindromic Substrings
+- 673\. Number of Longest Increasing Subsequence
 
 ## Sliding Window
 
