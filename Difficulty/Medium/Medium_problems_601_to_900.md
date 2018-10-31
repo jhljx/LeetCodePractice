@@ -327,3 +327,270 @@ Feel free to post any corrections or simpler explanations :)
             return dyn[max_so_far-1].back().second;
         }
     };
+
+## 695. Max Area of Island
+
+**题意**：给你一个非空的2D数组，数组元素为0或1。y一块陆地是一些全1的联通分量，联通分量可以向上下左右四个方向延伸。请你找出这个2D数组中最大的连通分量大小。如果数组中没有1，则最大联通分量大小为0。
+
+**思路**：dfs搜索然后再取max即可。
+
+代码如下：
+
+    class Solution {
+    public:
+        int maxAreaOfIsland(vector<vector<int>>& grid) {
+            int n = grid.size(), m = grid[0].size();
+            vector<vector<int>> vis(n, vector<int>(m, 0));
+            int ans = 0;
+            for(int i = 0; i < n; i++)
+            {
+                for(int j = 0; j < m; j++)
+                {
+                    if(!vis[i][j] && grid[i][j])
+                    {
+                        int num = 0;
+                        dfs(grid, vis, i, j, num);
+                        ans = max(ans, num);
+                    }
+                }
+            }
+            return ans;
+        }
+        void dfs(vector<vector<int>>& grid, vector<vector<int>>& vis, int x, int y, int& num)
+        {
+            int d[][2] = {{-1, 0}, {0, -1}, {0, 1}, {1, 0}};
+            int n = grid.size(), m = grid[0].size();
+            vis[x][y] = 1;
+            num++;
+            for(int i = 0; i < 4; i++)
+            {
+                int nx = x + d[i][0], ny = y + d[i][1];
+                if(nx >= 0 && nx < n && ny >= 0 && ny < m && grid[nx][ny] && !vis[nx][ny])
+                {
+                    dfs(grid, vis, nx, ny, num);
+                }
+            }
+        }
+    };
+
+## 698. Partition to K Equal Sum Subsets
+
+**题意**：给你一个整数的数组nums，和一个正整数k，判断这个数组能否划分成k个非空子集，并且每个子集的元素之和都相等。
+
+数据范围是：`1 <= k <= len(nums) <= 16`，`0 < nums[i] < 10000`。
+
+**思路**：其实还是蛮难想的，要考虑集合的划分。一开始想用dp每次凑够`sum / k`之后，再删掉这些数字，然后跑k次求sum的dp。但是这样是会出错的。。因为你不知道这一次就得选择这个求和的子集，可能删掉这个子集之后，剩下的子集就凑不够了。这样容易得到错误的结果。
+
+然后考虑具体记录当前有哪些数字被选过了，再看数据范围只有16，所以和二进制表示数据不谋而合，使用二进制来做状态的压缩。正巧这时候选择数字是按照子集选取，而没有顺序选择的问题，正好也是符合状态压缩的。因此这道题就可以用状态压缩DP来做。
+
+我一开始的思路是把所有等于`sum / k`的子集处理出来，然后根据当前的状态去添加这些`sum / k`的子集从而实现状态的转移。同时要保证当前状态不能和`sum / k`中选出来的状态有相同的1，这样就会有冲突。因为最后是要保证每个数字都只选一次。
+
+代码如下：
+
+    class Solution {
+    public:
+        bool canPartitionKSubsets(vector<int>& nums, int k) {
+            int sz = nums.size(), sum = 0;
+            for(int i = 0; i < sz; i++) sum += nums[i];
+            if(sum % k != 0) return false;
+            vector<int> vec;
+            for(int i = 0; i < (1 << sz); i++)
+            {
+                int var = 0;
+                for(int j = 0; j < sz; j++)
+                {
+                    if(i & (1 << j))
+                    {
+                        var += nums[j];
+                    }
+                }
+                if(var == sum / k) vec.push_back(i);
+            }
+            int snum = vec.size();
+            vector<int> dp(1 << sz, -1);
+            dp[0] = 0;
+            for(int i = 0; i < snum; i++)
+            {
+                for(int j = 0; j < (1 << sz); j++)
+                {
+                    if(!(j & vec[i]) && dp[j] != -1)
+                    {
+                        dp[j | vec[i]] = dp[j] + 1;
+                    }
+                }
+            }
+            return dp[(1 << sz) - 1] == k;
+        }
+    };
+
+另外的一种直接进行状态压缩DP的方法，这种方法比较巧妙。尤其是能够每次填一个数，还保证都是按照和为`sum / k`去致密地填充。
+
+代码如下：
+
+    class Solution {
+    public:
+        bool canPartitionKSubsets(vector<int>& nums, int k) {
+            //nums = {2,2,2,2,3,4,5}, k = 4;
+            int sz = nums.size(), sum = 0;
+            for(int i = 0; i < sz; i++) sum += nums[i];
+            if(sum % k != 0) return false;
+            vector<int> dp(1 << sz, 0), cnt(1 << sz, 0);
+            dp[0] = 1;
+            int target = sum / k;
+            for(int sts = 0; sts < (1 << sz); sts++)
+            {
+                if(dp[sts])
+                {
+                    for(int j = 0; j < sz; j++)
+                    {
+                        int fur = sts | (1 << j), sub = cnt[sts] % target; //这里的这个sub + nums[j] <= target限制非常好。。能够保证每次的target都填完，此外如果这一次填的超过了target，就填不了。所以能保证k次都填满才能到达全1的状态
+                    //还有一点是对于该状态fur的来源。。只要fur任意去掉一个1的位置即可，因为它之前的状态都等价。。一个数字nums[j]不管分到哪个组，对该组的贡献都是一样的
+                        if(!(sts & (1 << j)) && !dp[fur] && sub + nums[j] <= target)
+                        {
+                            dp[fur] = 1;
+                            cnt[fur] = cnt[sts] + nums[j];
+                        }
+                    }
+                }
+            }
+            return dp[(1 << sz) - 1];
+        }
+    };
+
+还有做法通过dfs去搜索全部的方案，复杂度是O(k ^ n)，虽然实际运行速度比动态规划要快。但是这不应该是标准的解法。这里不贴代码了，只记录一下网址。  
+[https://leetcode.com/problems/partition-to-k-equal-sum-subsets/discuss/140541/Clear-explanation-easy-to-understand-C++-:-4ms-beat-100](https://leetcode.com/problems/partition-to-k-equal-sum-subsets/discuss/140541/Clear-explanation-easy-to-understand-C++-:-4ms-beat-100)
+
+## 801. Minimum Swaps To Make Sequences Increasing
+
+**题意**：我们有两个整数数组A和B，长度非零。我们可以交换A[i]和B[i]。问你最少交换多少次能够保证A数组和B数组都是严格递增的？（一个序列是严格递增的当且仅当A[0] < A[1] < A[2] < ... < A[A.length - 1]。）返回最少交换的次数，保证数据是存在解的。
+
+A, B数组的长度范围是[1, 1000]，A[i]和B[i]的范围是[0, 2000]。
+
+例如：A = [1, 3, 5, 4]，B = [1, 2, 3, 7]。  
+交换A[3]和B[3]，可以得到A = [1, 3, 5, 7], B = [1, 2, 3, 4]。
+
+**思路**：考虑到一开始A, B两个数组不一定是严格递增的，而最终整体的目标是严格递增。而严格递增满足最优子结构，即A, B两个数组整体都严格递增了，则每一个相同的部分都是严格递增的。所以可以把整体的问题转化成若干个子问题来求解。
+
+对于当前第i个位置有两种决策，一种是交换，另一种是不交换。然后就可以将1~i的问题转换成1~(i-1)的子问题和i的子问题。
+
+然后就可以用O(N)的动态规划来计算结果。
+
+代码如下：
+
+    class Solution {
+    public:
+        int minSwap(vector<int>& A, vector<int>& B) {
+            int n = A.size();
+            const int inf =  1e9;
+            vector<vector<int>> dp(n, vector<int>(2, inf));
+            dp[0][0] = 0, dp[0][1] = 1;
+            for(int i = 1; i < n; i++)
+            {
+                if(A[i - 1] < A[i] && B[i - 1] < B[i]) dp[i][0] = min(dp[i][0], dp[i - 1][0]), dp[i][1] = min(dp[i][1], dp[i - 1][1] + 1);
+                if(A[i - 1] < B[i] && B[i - 1] < A[i]) dp[i][0] = min(dp[i][0], dp[i - 1][1]), dp[i][1] = min(dp[i][1], dp[i - 1][0] + 1);
+            }
+            return min(dp[n - 1][0], dp[n - 1][1]);
+        }
+    };
+
+## 802. Find Eventual Safe States
+
+**题意**：在一个连通图中，我们从每个节点开始，然后每次沿着一条有向边沿着图走到下一个节点。如果我们走到了一个终点（没有从该节点出去的有向边），则我们会停下来。
+
+定义一个节点的状态为'eventually safe'当且仅当我们从这个节点开始最终能走到一个终点。即存在一个自然数K，不管我们从这个节点出发怎么走，都能够在K步之内走到一个终点。
+
+有向图有N个节点0、1、...、N - 1，整个图按照如下格式给出：graph[i]是一个节点j的list，表示(i, j)之间有一条有向边。
+
+graph节点数最多为10000，边数不超过32000。每个graph[i]的list是排好序的数组，数组元素互不相同，且数组元素都在[0, graph.length - 1]的范围内。
+
+例如：  
+`Input: graph = [[1,2],[2,3],[5],[0],[5],[],[]]`  
+`Output: [2,4,5,6]`
+
+**思路**：这道题说白了就是找出来有哪些节点是在有向图的环上的。不在环上的节点就是最终要输出的答案。
+
+所以自然引出**有向图求环**。有向图求环的方法有**拓扑排序法**和**染色方法**。
+
+染色法的原理是'white-gray-black' DFS Algorithm。即通过设置节点标志来判断节点的染色状态。白色状态表示节点未被访问，灰色节点表示节点在环上，黑色节点表示节点不在环上。
+
+添加反向边然后进行拓扑排序的代码如下：
+
+    class Solution {
+    public:
+        vector<int> eventualSafeNodes(vector<vector<int>>& graph) {
+            int n = graph.size();
+            vector<unordered_set<int>> gph(n), rgph(n);
+            for(int i = 0; i < n; i++)
+            {
+                for(int j = 0; j < graph[i].size(); j++)
+                {
+                    int v = graph[i][j];
+                    gph[i].insert(v);
+                    rgph[v].insert(i);
+                }
+            }
+            queue<int> que;
+            vector<int> safe(n, 0);
+            for(int i = 0; i < n; i++)
+            {
+                if(!gph[i].size()) 
+                    que.push(i);
+            }
+            while(!que.empty())
+            {
+                int id = que.front();
+                que.pop();
+                safe[id] = 1;
+                for(auto it = rgph[id].begin(); it != rgph[id].end(); it++)
+                {
+                    int u = *it;
+                    gph[u].erase(id);
+                    if(!gph[u].size()) que.push(u);
+                }
+            }
+            vector<int> res;
+            for(int i = 0; i < n; i++) if(safe[i]) res.push_back(i);
+            return res;
+        }
+    };
+
+染色法代码如下：
+
+    class Solution {
+    public:
+        vector<int> eventualSafeNodes(vector<vector<int>>& graph) {
+            int sz = graph.size();
+            vector<int> flag(sz, -1);
+            vector<int> res;
+            for(int i = 0; i < sz; i++)
+                if(!dfs(i, graph, flag))
+                    res.push_back(i);
+            return res;
+        }
+        //染色法判断有向图是否有环，同时注意该函数中的两个剪枝的地方，保证复杂度为O(N + E)
+        int dfs(int u, vector<vector<int>>& graph, vector<int>& flag)
+        {
+            if(flag[u] != -1) return flag[u];  //需要加一个剪枝，一旦已经是环的那些节点直接返回
+            flag[u] = 1;
+            for(auto v : graph[u])
+            {
+                if(flag[v] == 1 || dfs(v, graph, flag))
+                {
+                    return flag[u] = 1;  //因为这里是获取u节点的状态，所以一旦找到有环的话，就立即返回
+                }
+            }
+            return flag[u] = 0;
+        }
+    };
+
+## 807. Max Increase to Keep City Skyline
+
+**题意**：在一个二维数组grid中，每个元素grid\[i]\[j]表示建筑的高度。我们可以给任意数量的建筑增加任意的高度。高度为0也被认为是一个建筑。最后从前后左右四个方向看整个数组的高度要**和原数组保持不变**。
+
+问你所有建筑最高可以增加的高度总和是多少？
+
+**思路**：就找出每行每列的最大值，然后对于非最大值的位置增加高度到它对应的行和列的最大值中最小的那个高度即可，然后求和。
+
+## 809. Expressive Words
+
+**题意**：

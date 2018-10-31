@@ -464,12 +464,54 @@ LeetCode提供的官方题解：[https://leetcode.com/problems/longest-palindrom
 
 **思路**：动态规划递推求解。
 
+代码如下：
+
+    class Solution {
+    public:
+        int uniquePaths(int m, int n) {
+            vector<vector<int>> dp(m + 1, vector<int>(n + 1, 0));
+            for(int i = 0; i < m; i++)
+            {
+                for(int j = 0; j < n; j++)
+                {
+                    if(!i && !j) dp[i][j] = 1;
+                    if(i) dp[i][j] += dp[i - 1][j];
+                    if(j) dp[i][j] += dp[i][j - 1];
+                }
+            }
+            return dp[m - 1][n - 1];
+        }
+    };
+
 ## 63. Unique Paths II
 
 **题意**：同62题，只不过矩阵中有些地方为障碍物，0表示可以走的位置，1表示障碍物。从左上角走到右下角有多少种走法？
 
 **思路**：因为有障碍物的存在，所以障碍物的地方dp值可以置为0。所以依然可以用动态规划求解。当然也可以BFS搜索。  
 **这里第一反应还是要想到动态规划，障碍物的产生造成了什么影响。相当于之前可以走到障碍物的步数现在都清零了。即障碍物的状态不能转移到别的状态。**
+
+代码如下：
+
+    class Solution {
+    public:
+        int uniquePathsWithObstacles(vector<vector<int>>& grid) {
+            int n = grid.size(), m = grid[0].size();
+            vector<vector<int>> dp(n + 1, vector<int>(m + 1, 0));
+            for(int i = 0; i < n; i++)
+            {
+                for(int j = 0; j < m; j++)
+                {
+                    if(!grid[i][j])
+                    {
+                        if(!i && !j) dp[i][j] = 1;
+                        if(i && !grid[i - 1][j]) dp[i][j] += dp[i - 1][j];
+                        if(j && !grid[i][j - 1]) dp[i][j] += dp[i][j - 1];
+                    }
+                }
+            }
+            return dp[n - 1][m - 1];
+        }
+    };
 
 ## 64. Minimum Path Sum
 

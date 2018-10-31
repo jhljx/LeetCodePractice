@@ -30,6 +30,10 @@
 - 654\. Maximum Binary Tree (Recurrence)
 - 655\. Print Binary Tree
 
+## Graph
+
+- 802\. Find Eventual Safe States
+
 ## DSU
 
 - 200\. Number of Islands
@@ -54,6 +58,7 @@
 - 47\. Permutations II
 - 60\. Permutation Sequence
 - 200\. Number of Islands (Flood Fill)
+- 695\. Max Area of Island
 
 ## Greedy
 
@@ -69,6 +74,7 @@
 - 279\. Perfect Squares
 - 647\. Palindromic Substrings
 - 673\. Number of Longest Increasing Subsequence
+- 801\. Minimum Swaps To Make Sequences Increasing
 
 ## Sliding Window
 
