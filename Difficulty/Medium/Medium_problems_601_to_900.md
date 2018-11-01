@@ -593,4 +593,559 @@ graph节点数最多为10000，边数不超过32000。每个graph[i]的list是�
 
 ## 809. Expressive Words
 
+**题意**：给你一个字符串S，和一个单词的数组。字符串S中连续相同的字母（个数大于等于3）可以选择小于等于该个数的字母添加若干个得到。问你单词数组中的单词经过这样的扩展操作之后，有几个能够变成字符串S？
+
+**思路**：统计字符串连续字符的个数，然后两两比较即可。假设字符串S中连续字符个数N1，单词中的连续字符个数为N2。在两个字符相等的情形下，`(N1 >= N2 && N1 >= 3) || (N1 == N2 && N1 < 3)`是满足条件的。或者按照自己这样的写法也行`if(num2 < num1 || (num2 > num1 && num2 < 3)) {flag = 0; break;}`。
+
+## 813. Largest Sum of Average
+
+**题意**：把一个数组A切分成最多K个连续的组，则分数是每个组的平均值之和。请问最大的分数是多少？
+
+例如：A = [9, 1, 2, 3, 9]
+K = 3。
+最好的划分方法是\[9], \[1, 2, 3], \[9]。得到的答案是20。
+
+**思路**：**这题属于比较好的题**。一开始想，最优化的结果是平均值之和，想到K个区间每个区间都包含一个很大的值。但是这样长度不好确定，而且题目说的是最多K个区间...所以排序找到比较大的数字分配到区间，这样肯定是不对的，而且区间长度也不好确定。
+
+由于求A的最多划分成K个子数组的最大平均值之和可以看做一个大问题。然后考虑如何从K - 1个子数组转移到K个子数组，最后一个子数组的长度是需要去枚举的。这样下来整个动态规划的复杂度就是O(K * N ^ 2)。
+
+一定要考虑阶段性，考虑状态是如何一步一步变化的，整个A数组，K个子数组就是很好的状态刻画了。然后考虑它是由什么前驱的状态而得到的，从而找到方法。
+
+代码如下：
+
+    class Solution {
+    public:
+        double largestSumOfAverages(vector<int>& A, int K) {
+            int sz = A.size();
+            double dp[sz + 10][sz + 10];
+            memset(dp, 0, sizeof(dp));
+            vector<int> sum = {A[0]};
+            for(int i = 1; i < sz; i++) sum.push_back(sum[i - 1] + A[i]);
+            for(int i = 0; i < sz; i++)
+            {
+                dp[i][0] = 0.0;
+                dp[i][1] = 1.0 * sum[i] / (i + 1);
+                for(int k = 2; k <= min(i + 1, K); k++)
+                {
+                    for(int j = k - 2; j < i; j++)
+                    {
+                        dp[i][k] = max(dp[i][k], dp[j][k - 1] + 1.0 * (sum[i] - sum[j]) / (i - j));
+                    }
+                }
+            }
+            return dp[sz - 1][K];
+        }
+    };
+
+## 814. Binary Tree Pruning
+
+**题意**：给你一个元素值为0或1的二叉树的根节点。把不包含1的子树直接去掉，然后返回。
+
+**思路**：直接O(N)处理即可。不需要对于每个节点在去计算它的子树，这样不仅有大量重复计算，而且复杂度是O(N^2)。
+
+代码如下：
+
+    /**
+    * Definition for a binary tree node.
+    * struct TreeNode {
+    *     int val;
+    *     TreeNode *left;
+    *     TreeNode *right;
+    *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+    * };
+    */
+    class Solution {
+    public:
+        TreeNode* pruneTree(TreeNode* root) {
+            dfs(root);
+            return root;
+        }
+        int dfs(TreeNode* &root)
+        {
+            if(root == NULL) return 0;
+            int lnum = dfs(root -> left);
+            int rnum = dfs(root -> right);
+            if(!lnum) root -> left = NULL;
+            if(!rnum) root -> right = NULL;
+            return lnum + rnum + (root -> val == 1);
+        }
+    };
+
+## 816. Ambiguous Coordinates
+
+**题意**：给你一个二维的坐标，像"(1, 3)"或者"(2, 0.5)"这样。然后我们去掉全部的逗号、小数点以及空格，然后得到字符串S。返回一个字符串的列表，表示所有可能的原始坐标。然后对于小数而言，整数部分不能有前导0、小数部分也不能全为0（比如00，0.0，0.00，1.0，001，00.01），而且整数部分不能为空（比如.1）。
+
+返回的结果列表中的字符串可以按照任意顺序，注意返回的字符串的两个坐标之间有一个空格。
+
+**思路**：直接处理字符串，然后枚举两个坐标的分界点，然后再去枚举两个坐标数字小数点的位置。写起来应该会比较繁琐。
+
+官方题解如下，复杂度O(N^3)：
+
+    class Solution { //aw
+        public List<String> ambiguousCoordinates(String S) {
+            List<String> ans = new ArrayList();
+            for (int i = 2; i < S.length()-1; ++i)
+                for (String left: make(S, 1, i))
+                    for (String right: make(S, i, S.length()-1))
+                        ans.add("(" + left + ", " + right + ")");
+            return ans;
+        }
+        public List<String> make(String S, int i, int j) {
+            // Make on S.substring(i, j)
+            List<String> ans = new ArrayList();
+            for (int d = 1; d <= j-i; ++d) {
+                String left = S.substring(i, i+d);
+                String right = S.substring(i+d, j);
+                if ((!left.startsWith("0") || left.equals("0"))
+                        && !right.endsWith("0"))
+                    ans.add(left + (d < j-i ? "." : "") + right);
+            }
+            return ans;
+        }
+    }
+
+## 817. Linked List Components
+
+**题意**：给定一个单链表head，链表中的元素互不相同。给定一个列表G，列表中的值是单链表中值的子集。返回G在链表上的联通块的个数。如果两个连续的数值出现在链表的相邻位置，则这两个值是联通的。
+
+链表长度N的范围是`1 <= N <= 10000`，链表中每个元素值都是在`[0, N - 1]`的范围内。G是链表全部数值的子集，G的长度范围是`1 <= G.length <= 10000`。
+
+例如：  
+Input:  
+head: 0->1->2->3  
+G = [0, 1, 3]  
+Output: 2  
+Explanation:
+0 and 1 are connected, so [0, 1] and [3] are the two connected components.  
+
+Input:  
+head: 0->1->2->3->4  
+G = [0, 3, 1, 4]  
+Output: 2  
+Explanation:
+0 and 1 are connected, 3 and 4 are connected, so [0, 1] and [3, 4] are the two connected components.
+
+**思路**：直接处理链表即可。用一个hash保存一下G中的值。
+
+代码如下：
+
+    /**
+    * Definition for singly-linked list.
+    * struct ListNode {
+    *     int val;
+    *     ListNode *next;
+    *     ListNode(int x) : val(x), next(NULL) {}
+    * };
+    */
+    class Solution {
+    public:
+        int numComponents(ListNode* head, vector<int>& G) {
+            unordered_set<int> uset;
+            for(int i = 0; i < G.size(); i++) uset.insert(G[i]);
+            ListNode *p = head;
+            int flag = 0, cnt = 0;
+            while(p != NULL)
+            {
+                int val = p -> val;
+                if(uset.count(val))
+                {
+                    if(!flag) flag = 1, cnt++;
+                }
+                else flag = 0;
+                p = p -> next;
+            }
+            return cnt;
+        }
+    };
+
+## 820. Short Encoding of Words
+
+**题意**：给一个单词的数组，可以对这个数组通过参考字符串S和索引的数组A来做编码。例如：单词数组为\['time', 'me', 'bell']，我们可以把它写作`S = 'time#bell#'`和`indexes=[0, 2, 5]`。对于每一个索引我们可以找到对应的单词直到遇到'#'字符为止，表示单词结束。
+
+问你参考字符串S的最短长度是多少？
+
+单词数组的长度范围是`1 <= words.length <= 2000`，单词的长度范围是`1 <= words[i].length <= 7`。每个单词只包含小写字母。
+
+**思路**：注意到一个关键的地方是当一个字符串是另一个字符串的后缀的时候，则可以使得长度减小。所以考虑逆序建立字典树。即按照字符串从末端到开头的顺序建立字典树。这样相同后缀就变成了相同的前缀，这样就能减少长度了。然后统计即可。
+
+自己的代码如下（要注意数组中可能有完全相同的字符串，实际上一开始也可以不给Trie设置int型变量，只要先对数组用hash去重即可）：
+
+    class Solution {
+    public:
+        int minimumLengthEncoding(vector<string>& words) {
+            Trie *rt = new Trie();
+            for(auto word: words)
+            {
+                Trie *p = rt;
+                for(int i = word.length() - 1; i >= 0; i--)
+                {
+                    int id = word[i] - 'a';
+                    if(!p -> nxt[id]) p -> nxt[id] = new Trie();
+                    p = p -> nxt[id];
+                }
+                p -> val = 1;
+            }
+            int ans = 0;
+            for(auto word: words)
+            {
+                Trie *p = rt;
+                for(int i = word.length() - 1; i >= 0; i--)
+                {
+                    int id = word[i] - 'a';
+                    p = p -> nxt[id];
+                }
+                int flag = 0;
+                for(int i = 0; i < 26; i++) if(p -> nxt[i]) {flag = 1; break;}
+                if(!flag && p -> val) ans += word.length() + 1, p -> val = 0;
+            }
+            return ans;
+        }
+        struct Trie
+        {
+            int val;
+            Trie *nxt[26];
+            Trie() {val = 0, memset(nxt, 0, sizeof(nxt));}
+        };
+    };
+
+另外一种做法，直接用hash。因为本题的主要矛盾是去掉那些是别的字符串后缀的字符串。
+
+代码如下：
+
+    class Solution {
+    public:
+        int minimumLengthEncoding(vector<string>& words) {
+            unordered_set<string> uset;
+            for(auto word: words) uset.insert(word);
+            for(auto word: words)
+                for(int i = 1; i < word.length(); i++)
+                    uset.erase(word.substr(i, word.length() - i));
+            int ans = 0;
+            for(auto it = uset.begin(); it != uset.end(); it++)
+                ans += (*it).length() + 1;
+            return ans;
+        }
+    };
+
+## 822. Card Flipping Game
+
+**题意**：在一个桌子上有N张卡片，每张卡片的正面和反面都有一个数字（两个数字可能不相同）。在选定一张卡片之后，我们可以翻转任意数量的卡片。如果选定的卡片背面的数字X不在任意一张卡片的正面，那么这个数字X就是good的。问最小的是good的数字是多少？如果不存在，输出0。
+
+数据范围如下：
+
+1. `1 <= fronts.length == backs.length <= 1000`.
+2. `1 <= fronts[i] <= 2000`.
+3. `1 <= backs[i] <= 2000`.
+
+**思路**：我们可以发现只有当有正面和反面两个数字一样的时候，其他数字在翻到底面的时候，才不能够good。如果一个数字，没有正反面一样的话，因为能翻若干个卡片，所以总能够把正面朝上的相同数字翻下去。所以只用考虑**当一个卡片正反面数字一样的时候**，它会使得这个数字不是good的。
+
+代码如下：
+
+    class Solution {
+    public:
+        int flipgame(vector<int>& fronts, vector<int>& backs) {
+            int n = fronts.size();
+            unordered_map<int, int> umap;
+            for(int i = 0; i < n; i++)
+            {
+                if(!umap.count(fronts[i])) umap[fronts[i]] = 1;
+                if(!umap.count(backs[i])) umap[backs[i]] = 1;
+                if(fronts[i] == backs[i]) umap[fronts[i]] = 0;
+            }
+            int ans = 0;
+            for(auto it = umap.begin(); it != umap.end(); it++)
+            {
+                int num = it -> first, flag = it -> second;
+                if(flag) ans = !ans ? num : min(ans, num);
+            }
+            return ans;
+        }
+    };
+
+## 823. Binary Trees With Factors
+
+**题意**：给你一个有不同数字的数组，每个整数都严格大于1。我们使用这些数字来构建二叉树，每个数字可以使用任意多次。每个非叶子节点的值必须等于它的孩子的乘积。我们能构建多少个这样的二叉树？返回的答案需要对`10^9 + 7`取模。
+
+例如：  
+Input: A = [2, 4, 5, 10]  
+Output: 7  
+Explanation: We can make these trees: [2], [4], [5], [10], [4, 2, 2], [10, 2, 5], [10, 5, 2].  
+
+数据范围：
+
+1. `1 <= A.length <= 1000`.
+2. `2 <= A[i] <= 10 ^ 9`.
+
+**思路**：首先要注意数字可以重复使用。所以对于一个数字而言，需要找到当前数组中有哪些数字之积等于该数字。为了降低`O(N^3)`的复杂度，所以对于每个数字而言，将已访问过的数字使用hash表缓存，然后查询商是否在hash表中即可。将时间复杂度降低到`O(N^2)`。然后注意数字比较大要取模，最好还是将最终的结果定义成long long。然后取模的式子老老实实写，不要去`+=`。
+
+从本题中也可以发现，大的数字作为二叉树的根节点的话，它要是由更小的数字构成的话，方法是就是自己因子对应的个数的乘积。这实际上就把大的问题转化成了子问题。。然后使用dp的方式求出结果。
+
+这里面预先排序也是很重要的，使得能够先算出小问题的答案，然后再得到大问题的答案。
+
+DP的时间复杂度为O(N^2)。
+
+代码如下：
+
+    class Solution {
+    public:
+        int numFactoredBinaryTrees(vector<int>& A) {
+            int n = A.size();
+            sort(A.begin(), A.end());
+            unordered_map<int, int> umap;
+            vector<int> dp(n, 1);
+            long long ans = 0;
+            const int mod = 1e9 + 7;
+            for(int i = 0; i < n; i++)
+            {
+                umap[A[i]] = i;
+                for(int j = 0; j < i; j++)
+                {
+                    if(A[i] % A[j] == 0 && umap.count(A[i] / A[j]))
+                    {
+                        int id = umap[A[i] / A[j]];
+                        dp[i] = (dp[i] + 1LL * dp[j] * dp[id]) % mod;
+                    }
+                }
+                ans = (ans + dp[i]) % mod;
+            }
+            return ans;
+        }
+    };
+
+## 825. Friends Of Appropriate Ages
+
+**题意**：一些人可以发起朋友请求，age数组表示每个人的年龄。
+
+A不向B(B != A)发起朋友请求当且仅当以下的任意一个条件成立：
+
+- `age[B] <= 0.5 * age[A] + 7`
+- `age[B] > age[A]`
+- `age[B] > 100 && age[A] < 100`
+
+否则，A将会向B发起朋友请求。
+如果A向B发起了朋友请求，但是B不是必须要向A发起朋友请求。同时，每个人也不会向自己发起朋友请求。
+
+问最终总共有多少个朋友请求？
+
+数据范围：
+
+- `1 <= ages.length <= 20000`
+- `1 <= ages[i] <= 120`
+
+**思路**：题目意思很绕。。orz。。还容易出错。
+
+首先是求出三个条件的反面，即A向B发起请求的条件。  
+`age[B] > 0.5 * age[A] + 7 && age[B] <= age[A] && (age[B] <= 100 || age[A] > 100)`  
+这里需要注意`age[B] > 0.5 * age[A] + 7`并且`age[B] <= age[A]`，则可以得到`age[A] > 0.5 * age[A] + 7`，即`age[A] > 14`。这是一个隐含条件。
+
+所以总的条件可以变成`ages[A] > 14 && age[B] > 0.5 * age[A] + 7 && age[B] <= age[A]`。
+
+自己最新的代码(36ms)，优化了if...else的判断：
+
+    class Solution {
+    public:
+        int numFriendRequests(vector<int>& ages) {
+            int n = ages.size(), ans = 0;
+            unordered_map<int, int> umap;
+            for(int i = 0; i < n; i++) umap[ages[i]]++;
+            for(auto i = umap.begin(); i != umap.end(); i++)
+            {
+                int a = i -> first, anum = i -> second;
+                for(auto j = umap.begin(); j != umap.end(); j++)
+                {
+                    int b = j -> first, bnum = j -> second;
+                    if(a == b && anum == 1) continue;
+                    if(a > 14 && b > 0.5 * a + 7 && b <= a) ans += anum * (bnum - (a == b)); //这里是优化的地方，如果写成if...else...的形式，则时间为48ms
+                }
+            }
+            return ans;
+        }
+    };
+
+自己之前写的比较蠢的代码(68ms)，没有看清楚age数组元素的取值范围那么小，用二分查找屈才了：
+
+    class Solution {
+    public:
+        int numFriendRequests(vector<int>& ages) {
+            sort(ages.begin(), ages.end());
+            int sz = ages.size();
+            vector<int> preN(sz), cntN(130);
+            for(int i = 0; i < sz; i++)
+            {
+                if(i == 0) preN[i] = -1;
+                else if(ages[i - 1] < ages[i]) preN[i] = i - 1;
+                else preN[i] = preN[i - 1];
+                cntN[ages[i]]++;
+            }
+            int ans = 0;
+            for(int i = 0; i < sz; i++)
+            {
+                int pos = upper_bound(ages.begin(), ages.begin() + preN[i] + 1, floor(0.5 * ages[i] + 7)) - ages.begin();
+                if(ages[i] <= 14) continue;
+                if(pos < preN[i] + 1) ans += (preN[i] + 1 - pos);
+                if(cntN[ages[i]] > 1) ans += (cntN[ages[i]] - 1);
+            }
+            return ans;
+        }
+    };
+
+别人家的代码：
+
+    int numFriendRequests(vector<int>& ages) {
+        int a[121] = {}, res = 0;
+        for (auto age : ages) ++a[age];
+        for (auto i = 15; i <= 120; ++i)
+            for (int j = 0.5 * i + 8; j <= i; ++j) res += a[j] * (a[i] - (i == j));
+        return res;
+    }
+
+自己写的哈希表实际上和这里的数组的作用是一样的。
+
+别人家优化的版本：
+
+    int numFriendRequests(vector<int>& ages) {
+        int a[121] = {}, res = 0;
+        for (auto age : ages) ++a[age];
+        for (auto i = 15, minAge = 15, sSum = 0; i <= 120; sSum += a[i], res += a[i++] * (sSum - 1))
+            while (minAge <= 0.5 * i + 7) sSum -= a[minAge++];
+        return res;
+    }
+
+这个sliding sum(类似移动窗口)的优化做法，只需要每次剔除掉那些不在下界之上的数字，然后上界不用管，因为如果去掉while循环的话本来就是求1 ~ i - 1的sum和。
+
+## 835. Image Overlap
+
+**题意**：给定两个图片A和B，用2D的01矩阵表示，两个矩阵是大小相同的方阵。我们平移(平移的方向是上下左右)一张图片，然后把它放在另一张图片上方。然后，这次平移的overlap就是两张图片中公共的1的个数。
+
+问最大可能的overlap是多少？
+
+**思路**：自己的思路就是朴素的暴力枚举A的顶点与B的哪个点重合。然后就有四种情况。O(N^4)计算即可。
+
+代码如下(自己写的太繁琐)：
+
+    class Solution {
+    public:
+        int largestOverlap(vector<vector<int>>& A, vector<vector<int>>& B) {
+            int n = A.size(), m = A[0].size();
+            int res = 0;
+            for(int i = 0; i < n; i++)
+            {
+                for(int j = 0; j < m; j++)
+                {
+                    res = max(res, check(A, B, i, j));
+                }
+            }
+            return res;
+        }
+        int check(vector<vector<int>>& A, vector<vector<int>>& B, int px, int py)
+        {
+            int res = 0, sum = 0;
+            int n = A.size(), m = A[0].size();
+            for(int i = 0; i <= px; i++)
+            {
+                for(int j = 0; j <= py; j++)
+                {
+                    int ax = n - 1 - px + i, ay = m - 1 - py + j;
+                    if(A[ax][ay] == 1 && B[i][j] == 1) sum++;
+                }
+            }
+            res = max(res, sum);
+            sum = 0;
+            for(int i = px; i <= n - 1; i++)
+            {
+                for(int j = 0; j <= py; j++)
+                {
+                    int ax = i - px, ay = m - 1 - py + j;
+                    if(A[ax][ay] == 1 && B[i][j] == 1) sum++;
+                }
+            }
+            res = max(res, sum);
+            sum = 0;
+            for(int i = 0; i <= px; i++)
+            {
+                for(int j = py; j <= m - 1; j++)
+                {
+                    int ax = n - 1 - px + i, ay = j - py;
+                    if(A[ax][ay] == 1 && B[i][j] == 1) sum++;
+                }
+            }
+            res = max(res, sum);
+            sum = 0;
+            for(int i = px; i <= n - 1; i++)
+            {
+                for(int j = py; j <= m - 1; j++)
+                {
+                    int ax = i - px, ay = j - py;
+                    if(A[ax][ay] == 1 && B[i][j] == 1) sum++;
+                }
+            }
+            res = max(res, sum);
+            return res;
+        }
+    };
+
+官方的题解有两种解法：
+
+- 首先考虑平移的偏移向量delta，对于每个可能的偏移，去计算相应的Overrlap，这样的时间复杂度是O(n^6)。
+
+Java代码如下：
+
+    import java.awt.Point;
+
+    class Solution {
+        public int largestOverlap(int[][] A, int[][] B) {
+            int N = A.length;
+            List<Point> A2 = new ArrayList(), B2 = new ArrayList();
+            for (int i = 0; i < N*N; ++i) {
+                if (A[i/N][i%N] == 1) A2.add(new Point(i/N, i%N));
+                if (B[i/N][i%N] == 1) B2.add(new Point(i/N, i%N));
+            }
+
+            Set<Point> Bset = new HashSet(B2);
+            int ans = 0;
+            Set<Point> seen = new HashSet();
+            for (Point a: A2) for (Point b: B2) {
+                Point delta = new Point(b.x - a.x, b.y - a.y);
+                if (!seen.contains(delta)) {
+                    seen.add(delta);
+                    int cand = 0;
+                    for (Point p: A2)
+                        if (Bset.contains(new Point(p.x + delta.x, p.y + delta.y)))
+                            cand++;
+                    ans = Math.max(ans, cand);
+                }
+            }
+            return ans;
+        }
+    }
+
+- 第二种做法是第一种做法的逆向思维，因为最终求的是重叠部分相同的1的个数。所以我们只考虑A的1与B的1重叠的情形。相应的就能算出来偏移量。然后相当于对每个偏移量去计数就可以了。时间复杂度O(N^4)，**代码很精简，值得学习**！
+
+Java代码如下：
+
+    class Solution {
+        public int largestOverlap(int[][] A, int[][] B) {
+            int N = A.length;
+            int[][] count = new int[2*N+1][2*N+1];
+            for (int i = 0; i < N; ++i)
+                for (int j = 0; j < N; ++j)
+                    if (A[i][j] == 1)
+                        for (int i2 = 0; i2 < N; ++i2)
+                            for (int j2 = 0; j2 < N; ++j2)
+                                if (B[i2][j2] == 1)
+                                    count[i-i2 +N][j-j2 +N] += 1;
+            int ans = 0;
+            for (int[] row: count)
+                for (int v: row)
+                    ans = Math.max(ans, v);
+            return ans;
+        }
+    }
+
+还有一些基于第二种做法的更精简的代码，这里只放网址：
+
+[https://leetcode.com/problems/image-overlap/discuss/130623/C++JavaPython-Straight-Forward](https://leetcode.com/problems/image-overlap/discuss/130623/C++JavaPython-Straight-Forward)  
+
+## 841. Keys and Rooms
+
 **题意**：

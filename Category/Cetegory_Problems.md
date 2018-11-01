@@ -5,11 +5,21 @@
 - 2\. Add Two Numbers
 - 43\. Multiply Strings
 
+## Brute Force(包括暴力枚举)
+
+- 816\. Ambiguous Coordinates
+- 835\. Image Overlap
+
 ## Hash
 
 - 1\. Two Sum
 - 3\. Longest Substring Without Repeating Characters
 - 49\. Group Anagrams
+- 817\. Linked List Components
+- 820\. Short Encoding of Words
+- 822\. Card Flipping Game
+- 823\. Binary Trees With Factors
+- 825\. Friends Of Appropriate Ages
 
 ## Stack
 
@@ -20,15 +30,24 @@
 - 5\. Longest Palindromic Substring
 - 8\. String to Integer(atoi)
 - 647\. Palindromic Substrings
+- 809\. Expressive Words
+- 816\. Ambiguous Coordinates(好题，写着容易繁琐，考验编码能力)
+- 820\. Short Encoding of Words(好题)
 
 ## Linked List
 
 - 2\. Add Two Numbers
+- 817\. Linked List Components
 
 ## Trees
 
 - 654\. Maximum Binary Tree (Recurrence)
 - 655\. Print Binary Tree
+- 814\. Binary Tree Pruning
+
+## Trie
+
+- 820\. Short Encoding of Words
 
 ## Graph
 
@@ -75,6 +94,8 @@
 - 647\. Palindromic Substrings
 - 673\. Number of Longest Increasing Subsequence
 - 801\. Minimum Swaps To Make Sequences Increasing
+- 813\. Largest Sum of Averages(好题)
+- 823\. Binary Trees With Factors
 
 ## Sliding Window
 
