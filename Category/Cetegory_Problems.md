@@ -10,6 +10,18 @@
 - 816\. Ambiguous Coordinates
 - 835\. Image Overlap
 
+## Math
+
+- 858\. Mirror Reflection(好题)
+
+## Simulation
+
+- 885\. Spiral Matrix III(不好写)
+
+## Games
+
+- 877\. Stone Game
+
 ## Hash
 
 - 1\. Two Sum
@@ -24,6 +36,7 @@
 ## Stack
 
 - 654\. Maximum Binary Tree(笛卡尔树)
+- 856\. Score of Parentheses
 
 ## Strings
 
@@ -44,6 +57,7 @@
 - 654\. Maximum Binary Tree (Recurrence)
 - 655\. Print Binary Tree
 - 814\. Binary Tree Pruning
+- 865\. Smallest Subtree with all the Deepest Nodes(好题)
 
 ## Trie
 
@@ -70,6 +84,8 @@
 ## Two pointers
 
 - 658\. Find K Closest Elements
+- 845\. Longest Mountain in Array(前后双指针)
+- 881\. Boats to Save People(左右双指针)
 
 ## DFS
 
@@ -78,10 +94,14 @@
 - 60\. Permutation Sequence
 - 200\. Number of Islands (Flood Fill)
 - 695\. Max Area of Island
+- 841\. Keys and Rooms
+- 865\. Smallest Subtree with all the Deepest Nodes
 
 ## Greedy
 
 - 134\. Gas Station
+- 853\. Car Fleet
+- 861\. Score After Flipping Matrix
 
 ## Dynamic Programming
 
@@ -96,6 +116,8 @@
 - 801\. Minimum Swaps To Make Sequences Increasing
 - 813\. Largest Sum of Averages(好题)
 - 823\. Binary Trees With Factors
+- 873\. Length of Longest Fibonacci Subsequence(好题)
+- 877\. Stone Game
 
 ## Sliding Window
 

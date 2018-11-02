@@ -1148,4 +1148,698 @@ Java代码如下：
 
 ## 841. Keys and Rooms
 
+**题意**：有N个屋子，你一开始在第0个屋子。每个屋子都有一个不同的数字0,1,2,..., N-1。每个屋子有一些到下一个屋子的钥匙。每个屋子i都有一个钥匙的列表`rooms[i]`，每个钥匙`rooms[i][j]`是一个范围在`[0, 1, ..., N-1]`的整数。其中`N = rooms.length`。一个钥匙`rooms[i][j] = v`可以打开第v个屋子。
+
+一开始的时候，除了0号屋子以外，其他屋子都是锁上的。你可以来回在屋子之间走。如果你可以走到每一个屋子，返回`true`。否则返回`false`。
+
+**思路**：无向图求联通分量，直接dfs即可。
+
+代码如下：
+
+    class Solution {
+    public:
+        bool canVisitAllRooms(vector<vector<int>>& rooms) {
+            int sz = rooms.size();
+            vector<int> flag(sz);
+            dfs(0, rooms, flag);
+            for(int i = 0; i < sz; i++)
+            {
+                if(!flag[i])
+                    return false;
+            }
+            return true;
+        }
+        void dfs(int u, vector<vector<int>>& rooms, vector<int>& flag)
+        {
+            flag[u] = 1;
+            for(auto v: rooms[u])
+            {
+                if(!flag[v])
+                {
+                    dfs(v, rooms, flag);
+                }
+            }
+        }
+    };
+
+## 845. Longest Mountain in Array
+
+**题意**：我们把一个子数组称为`mountain`当且仅当满足以下的性质：
+
+- `B.length >= 3`
+- 存在某个`0 < i < B.length - 1`满足`B[0] < B[1] < ... < B[i - 1] < B[i] > B[i + 1] > ... > B[B.length - 1]`
+
+B可以是A的任意子数组，包括完整的A数组。  
+给你一个全是整数的A数组，返回最长的`mountain`的长度。  
+如果没有`mountain`，则返回0。
+
+数据范围：
+
+- `0 <= A.length <= 10000`
+- `0 <= A[i] <= 10000`
+
+要求：
+
+- 能否只使用一次循环？
+- 能否只用O(1)的空间？
+
+**思路**：就直接普通的判断就好了。实际上有贪心的性质。
+
+    class Solution {
+    public:
+        int longestMountain(vector<int>& A) {
+            int sz = A.size();
+            int ans = 0, i = 0;
+            while(i < sz)
+            {
+                int p = i;
+                while(p + 1 < sz && A[p + 1] > A[p]) p++;
+                if(p > i)
+                {
+                    int q = p;
+                    while(p + 1 < sz && A[p + 1] < A[p]) p++;
+                    if(p > q)
+                    {
+                        ans = max(ans, p - i + 1);
+                        i = p;
+                    }
+                    else
+                        i++;
+                }
+                else
+                {
+                    i++;
+                }
+            }
+            return ans;
+        }
+    };
+
+## 853. Car Fleet
+
+**题意**：N个汽车都要驶向同一个终点，终点离原点的距离为`target`英里。每个汽车i都有一个恒定的速度`speed[i]`(英里/小时)，同时给出每个汽车的初始位置`position[i]`。
+
+**每个汽车永远都不能超过它前面的车**，但是它能追上前面的车，同时车速与前面的车速相同，可以认为这两辆车在同一个位置上。
+
+一个`car fleet`指的是在同一时刻速度相同的汽车的非空集合，一辆汽车也可以构成一个`car fleet`。如果一辆车在终点的时候才追上另一辆车，那么也可以认为它们构成一个`car fleet`。
+
+问你到达终点的时候总共有多少个`car fleet`？
+
+数据范围：
+
+1. `0 <= N <= 10 ^ 4`
+2. `0 < target <= 10 ^ 6`
+3. `0 < speed[i] <= 10 ^ 6`
+4. `0 <= position[i] < target`
+5. 所有初始位置都互不相同
+
+**思路**：实际上需要先忽略其他汽车对自己造成的影响，看当前的汽车匀速行驶多长时间能够到达重点。对于每辆车都能计算出行驶时间。然后考虑路程时间图像，去考虑每辆汽车怎样才会形成车队，当pos更小的汽车，所用的时间比pos大的汽车时间短的时候，就会形成车队。根据这个特点来统计个数即可。
+
+自己的代码如下，写的很丑，其实没必要用DSU：
+
+    class Solution {
+    public:
+        int carFleet(int target, vector<int>& position, vector<int>& speed) {
+            vector<pair<int,int>> vec;
+            int sz = position.size();
+            if(sz == 0) return 0;
+            for(int i = 0; i < sz; i++) vec.push_back(make_pair(position[i], speed[i]));
+            sort(vec.begin(), vec.end());
+            vector<pair<double, int>> time(sz);
+            const double eps = 1e-6;
+            vector<int> par(sz, 0);
+            for(int i = 0; i < sz; i++) time[i] = make_pair(1.0 * (target - vec[i].first) / vec[i].second, i),  par[i] = i;
+            sort(time.begin(), time.end());
+            int i = sz - 1;
+            while(i >= 0)
+            {
+                int p = i - 1, idi = time[i].second;
+                while(p >= 0 && time[p].second < idi)
+                {
+                    int idp = time[p].second;
+                    int x = find(idp, par), y = find(idi, par);
+                    par[x] = y;
+                    p--;
+                }
+                i = p;
+            }
+            int res = 0;
+            for(int i = 0; i < sz; i++) if(par[i] == i) res++;
+            return res;
+        }
+        int find(int x, vector<int>& par)
+        {
+            if(par[x] == x) return x;
+            return par[x] = find(par[x], par);
+        }
+    };
+
+官方题解，实际上没必要用栈。**关键点是排序，然后贪心**。
+
+Java代码如下：
+
+    class Solution {
+        public int carFleet(int target, int[] position, int[] speed) {
+            int N = position.length;
+            Car[] cars = new Car[N];
+            for (int i = 0; i < N; ++i)
+                cars[i] = new Car(position[i], (double) (target - position[i]) / speed[i]);
+            Arrays.sort(cars, (a, b) -> Integer.compare(a.position, b.position));
+            int ans = 0, t = N;
+            while (--t > 0) {
+                if (cars[t].time < cars[t-1].time) ans++; //if cars[t] arrives sooner, it can't be caught
+                else cars[t-1] = cars[t]; //else, cars[t-1] arrives at same time as cars[t]
+            }
+            return ans + (t == 0 ? 1 : 0); //lone car is fleet (if it exists)
+        }
+    }
+    class Car {
+        int position;
+        double time;
+        Car(int p, double t) {
+            position = p;
+            time = t;
+        }
+    }
+
+别人家的五行代码，思路超级清晰，值得学习：
+
+    int carFleet(int target, vector<int>& pos, vector<int>& speed, int fl = 0, double time = 0) {
+        map<int, double> m;
+        for (auto i = 0; i < pos.size(); ++i) m[pos[i]] = ((double)target - pos[i]) / speed[i];
+        for (auto it = m.rbegin(); it != m.rend(); ++it) {
+            if (it->second > time) ++fl, time = it->second;
+        }
+        return fl;
+    }
+
+## 856. Score of Parentheses
+
+**题意**：给你一个匹配的括号序列S，计算整个序列的分数。规则如下：
+
+- ()有1分
+- AB的分数是A+B，其中A和B是匹配的括号序列
+- (A)的分数是2 \* A，其中A是匹配的括号序列
+
+例如：
+
+    Input: "(()(()))"  
+    Output: 6  
+
+数据范围：
+
+1. S是匹配的括号序列，且只包含'('和')'
+2. 2 <= S.length <= 50
+
+**思路**：自己的思路是先用栈找出匹配的位置，然后再去dfs计算。这样能保证算法复杂度是O(N)的，而不是O(N^2)。
+
+代码如下：
+
+    class Solution {
+    public:
+        int scoreOfParentheses(string S) {
+            int sz = S.length();
+            stack<int> st;
+            vector<int> pos(sz, -1);
+            for(int i = 0; i < sz; i++)
+            {
+                if(S[i] == '(') st.push(i);
+                else
+                {
+                    pos[st.top()] = i;
+                    st.pop();
+                }
+            }
+            return dfs(S, 0, sz - 1, pos);
+        }
+        int dfs(string& S, int l, int r, vector<int>& pos)
+        {
+            int i = l, ans = 0;
+            while(i <= r)
+            {
+                if(pos[i] - 1 - i >= 2)
+                    ans += 2 * dfs(S, i + 1, pos[i] - 1, pos);
+                else
+                    ans++;
+                i = pos[i] + 1;
+            }
+            return ans;
+        }
+    };
+
+官方题解是用栈可以直接搞：
+
+自己没看官方栈版本写的：
+
+    class Solution {
+    public:
+        int scoreOfParentheses(string S) {
+            int sz = S.length();
+            vector<int> st;
+            int ans = 0;
+            for(int i = 0; i < sz; i++)
+            {
+                if(S[i] == '(') st.push_back(0);
+                else
+                {
+                    int num = st.back();
+                    st.pop_back();
+                    if(!num)
+                    {
+                        if(!st.size()) ans++;
+                        else st[st.size() - 1]++;
+                    }
+                    else
+                    {
+                        if(!st.size()) ans += 2 * num;
+                        else st[st.size() - 1] += 2 * num;
+                    }
+                }
+            }
+            return ans;
+        }
+    };
+
+官方的Java版本代码：
+
+    public int scoreOfParentheses(String S) {
+        Stack<Integer> stack = new Stack();
+        stack.push(0); // The score of the current frame
+        for (char c: S.toCharArray()) {
+            if (c == '(')
+                stack.push(0);
+            else {
+                int v = stack.pop();
+                int w = stack.pop();
+                stack.push(w + Math.max(2 * v, 1));
+            }
+        }
+        return stack.pop();
+    }
+
+确实写的要比自己的版本简洁。使用max来判断到底是取2\*v还是取1。
+
+官方的第三种解法，直接统计。代码如下：
+
+    class Solution {
+        public int scoreOfParentheses(String S) {
+            int ans = 0, bal = 0;
+            for (int i = 0; i < S.length(); ++i) {
+                if (S.charAt(i) == '(') {
+                    bal++;
+                } else {
+                    bal--;
+                    if (S.charAt(i-1) == '(')
+                        ans += 1 << bal;
+                }
+            }
+            return ans;
+        }
+    }
+
+这两种官方的解法都是考虑了左括号的深度。因此可以直接加和计算。
+
+## 858. Mirror Reflection
+
+**题意**：有一个正方形的屋子，四面墙上都有一面镜子。除了左下角之外，每个顶点都有一个受体。右下角受体的编号是0，右上角受体的编号是1，左上角受体的编号是2。
+
+屋子的长度是p，有一束光从左下角发射打到右侧墙上的位置和右下角顶点间的距离是q。让你返回灯光最先打到的受体编号是多少？(数据保证解存在)
+
+数据范围：
+
+1. `1 <= p <= 1000`
+2. `0 <= q <= p`
+
+[https://leetcode.com/problems/mirror-reflection/description/](https://leetcode.com/problems/mirror-reflection/description/)
+
+**思路**：高中物理镜面反射题。。顺便用一用gcd。自己当时想着去模拟整个反射的过程，太麻烦了。。实际上需要以右侧墙壁的镜面将屋子对称反射到右侧。
+
+官方题解如下：
+
+    class Solution {
+        public int mirrorReflection(int p, int q) {
+            int g = gcd(p, q);
+            p /= g; p %= 2;
+            q /= g; q %= 2;
+            if (p == 1 && q == 1) return 1;
+            return p == 1 ? 0 : 2;
+        }
+
+        public int gcd(int a, int b) {
+            if (a == 0) return b;
+            return gcd(b % a, a);
+        }
+    }
+
+因为数据保证了解的存在性，所以不用考虑p = 0, q是0还是非0。因为只要p=0的时候，肯定第一次碰到的是2所在的左侧墙壁的顶点。
+
+## 861. Score After Flipping Matrix
+
+**题意**：有一个二维的01矩阵A。每一步操作可以选择任意行或列，然后翻转那一行或列的每一个数字，把所有的0变成1，把所有的1变成0。
+
+进行了一系列的操作之后，把每一行看做一个二进制数字，总的分数就是所有行的二进制数字之和。
+
+返回最大的数字。
+
+**思路**：为了保证数字最大，肯定贪心地先把最高位都变成1，只需要`A[i][0] == 0`的行做翻转即可。然后考虑每一列，这时候第一列肯定全是1了。考虑剩下的列是否需要变换，当这一列中0的个数大于1的个数，则对这一列进行翻转之后，0变成了1，所以翻转之后1的个数就会比0的个数要多。
+
+代码如下：
+
+    class Solution {
+    public:
+        int matrixScore(vector<vector<int>>& A) {
+            int n = A.size(), m = A[0].size();
+            for(int i = 0; i < n; i++)
+            {
+                if(!A[i][0])
+                    for(int j = 0; j < m; j++) A[i][j] ^= 1;
+            }
+            for(int j = 1; j < m; j++)
+            {
+                int cnt = 0;
+                for(int i = 0; i < n; i++) cnt += A[i][j];
+                if(cnt < n - cnt)
+                    for(int i = 0; i < n; i++) A[i][j] ^= 1;
+            }
+            int ans = 0;
+            for(int i = 0; i < n; i++)
+            {
+                int num = 0;
+                for(int j = 0; j < m; j++)
+                    num += A[i][j] * (1 << (m - 1 - j));
+                ans += num;
+            }
+            return ans;
+        }
+    };
+
+## 865. Smallest Subtree with all the Deepest Nodes
+
+**题意**：给定一个二叉树的根节点root，各个节点的深度是该节点到根节点的最短距离。
+
+一个节点是深度最深的当且仅当它的深度是整个树的节点中最深的。
+
+返回所有深度最深的节点集合深度最深的公共祖先。
+
+数据范围：
+
+- 树中节点的个数范围是1~500
+- 每个节点的值是唯一的
+
+**思路**：一开始求最大深度是很好想的。接下来如何判断所有深度最深的节点的位置是比较困难的。。之前的做法是计算出每个节点的子树中最深节点的个数，进而通过判断左子树的个数和右节点的个数与总个数的关系来判断如何继续向下遍历。
+
+这样实际上是没有必要的，我们得到了最大深度之后，对于根节点而言，如果左右子树的最大深度都等于整棵树的最大深度，则直接返回根节点。否则如果只有左子树的最大深度为整棵树的最大深度的话，则继续dfs搜索左子树。反之，搜索右子树。
+
+有点脑筋急转弯的感觉，这次做差点没转过来弯。算法复杂度是O(N^2)。
+
+代码如下：
+
+    /**
+    * Definition for a binary tree node.
+    * struct TreeNode {
+    *     int val;
+    *     TreeNode *left;
+    *     TreeNode *right;
+    *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+    * };
+    */
+    class Solution {
+    public:
+        TreeNode* subtreeWithAllDeepest(TreeNode* root) {
+            int maxh = getHeight(root);
+            return dfs(root, maxh);
+        }
+        int getHeight(TreeNode* root)
+        {
+            if(root == NULL) return 0;
+            return max(getHeight(root -> left), getHeight(root -> right)) + 1;
+        }
+        TreeNode* dfs(TreeNode* root, int maxh)
+        {
+            if(root == NULL) return NULL;
+            int lh = getHeight(root -> left) + 1, rh = getHeight(root -> right) + 1;
+            if(lh == maxh && rh == maxh) return root;
+            if(lh == maxh) return dfs(root -> left, maxh - 1);
+            if(rh == maxh) return dfs(root -> right, maxh - 1);
+        }
+    };
+
+官方题解提供了两种O(N)的做法，第一种做法是通过hash对我的这种方法每个节点的高度进行了存储。第二种后序遍历的方法值得学习。第二种方法的原理就是动态获取高度并且维护最深的节点位置。
+
+代码如下（自己用C++改写）：
+
+    /**
+    * Definition for a binary tree node.
+    * struct TreeNode {
+    *     int val;
+    *     TreeNode *left;
+    *     TreeNode *right;
+    *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+    * };
+    */
+    class Result
+    {
+    public:
+        TreeNode* node;
+        int h;
+        Result(TreeNode* _nd, int _h)
+        {
+            node = _nd, h = _h;
+        }
+    };
+
+    class Solution {
+    public:
+        TreeNode* subtreeWithAllDeepest(TreeNode* root) {
+            return dfs(root).node;
+        }
+
+        Result dfs(TreeNode* root)
+        {
+            if(root == NULL) return Result(NULL, 0);
+            Result L = dfs(root -> left), R = dfs(root -> right);
+            if(L.h > R.h) return Result(L.node, L.h + 1);
+            if(R.h > L.h) return Result(R.node, R.h + 1);
+            return Result(root, L.h + 1);
+        }
+    };
+
+## 869. Reordered Power of 2
+
+**题意**：给你一个正整数N，对数字的每一位进行重排(重排后不能有前导0)。判断这个数字重排之后能否等于2的幂？
+
+数据范围：`1 <= N <= 10^9`
+
+**思路**：对于这种重排之后比较大小的为题，一般有两种方法，第一种是统计每个字符(每一位的数字)的个数。然后比较个数的向量是否完全相同。另一种对于字符串重排而言，可以对字符串sort排序，然后使得字符串的字符都是按照字典序递增排列，然后比较排序后的字符串是否相等。
+
+官方题解代码：
+
+    class Solution {
+        public boolean reorderedPowerOf2(int N) {
+            int[] A = count(N);
+            for (int i = 0; i < 31; ++i)
+                if (Arrays.equals(A, count(1 << i)))
+                    return true;
+            return false;
+        }
+
+        // Returns the count of digits of N
+        // Eg. N = 112223334, returns [0,2,3,3,1,0,0,0,0,0]
+        public int[] count(int N) {
+            int[] ans = new int[10];
+            while (N > 0) {
+                ans[N % 10]++;
+                N /= 10;
+            }
+            return ans;
+        }
+    }
+
+时间复杂度是$O(log^{2} N)$，总共有`logN`个不同的2的幂，每次比较需要$O(log N)$的时间复杂度。
+
+## 873. Length of Longest Fibonacci Subsequence
+
+**题意**：一个序列`X_1, X_2, ..., X_n`是`fibonacci-like`的当且仅当
+
+- `n >= 3`
+- 对于所有`i + 2 <= n`都有`X_i + X_{i + 1} = X_{i + 2}`
+
+给定一个全是正数组成的**严格递增**的数组A，找到A中最长的`fibonacci-like`子序列的长度。如果不存在，则返回0。
+
+数据范围：
+
+- `3 <= A.length <= 1000`
+- `1 <= A[0] < A[1] < A[A.length - 1] <= 10^9`
+
+例如：  
+
+    Input: [1,3,7,11,12,14,18]
+    Output: 3
+    Explanation:
+    The longest subsequence that is fibonacci-like:
+    [1,11,12], [3,11,14] or [7,11,18].
+
+**思路**：这道题实际上是在斐波那契数列的基础上进行的一个扩展。对于斐波那契数列，我们只要知道两个数字，就能知道整个数列的信息。所以对于阶段性的划分而言只要当前数字和前一个数字，两个数字相减就能得到更前面的数字。这样我们只需要两个状态即可。然后就可以转化为序列dp。
+
+这道题实际上也是序列dp的变种，最原始的序列dp有最长上升子序列。因而对于斐波那契的子序列而言整体的问题可以变为少一个数字的子问题，然后长度+1即可。
+
+代码如下：
+
+    class Solution {
+    public:
+        int lenLongestFibSubseq(vector<int>& A) {
+            int n = A.size();
+            vector<vector<int>> dp(n, vector<int>(n, 0));
+            unordered_map<int, int> hash;
+            int ans = 0;
+            for(int i = 0; i < n; i++)
+            {
+                for(int j = i - 1; j >= 0; j--)
+                {
+                    int pre = A[i] - A[j];
+                    if(hash.count(pre) && hash[pre] < j) dp[i][j] = max(dp[i][j], dp[j][hash[pre]] + 1);
+                    else dp[i][j] = 2;
+                    ans = max(ans, dp[i][j]);
+                }
+                hash[A[i]] = i;
+            }
+            if(ans < 3) ans = 0;
+            return ans;
+        }
+    };
+
+但是上面的代码运行速度比较慢，100多ms。改了一些部分之后，可以跑到64ms。
+
+代码如下：
+
+    class Solution {
+    public:
+        int lenLongestFibSubseq(vector<int>& A) {
+            int n = A.size();
+            int dp[n + 10][n + 10];
+            memset(dp, 0, sizeof(dp));
+            unordered_map<int, int> hash;
+            for(int i = 0; i < n; i++) hash[A[i]] = i;
+            int ans = 0;
+            for(int i = 0; i < n; i++)
+            {
+                dp[i][i] = 1;
+                for(int j = 0; j < i; j++)
+                {
+                    if(A[i] < 2 * A[j] && hash.count(A[i] - A[j]))
+                    {
+                        int idx = hash[A[i] - A[j]];
+                        dp[i][j] = max(dp[i][j], dp[j][idx] + 1);
+                    }
+                    else dp[i][j] = 2;
+                    ans = max(ans, dp[i][j]);
+                }
+            }
+            if(ans < 3) ans = 0;
+            return ans;
+        }
+    };
+
+这个代码里面if语句先判断A[i]与A[j]的关系可以防止每次都去查询hash表，从而节省时间。因为数字不会重复，所以可以用数值来判断位置大小。然后if语句里面单独把hash的value用idx保存也能加快时间。
+
+而且预先把数据存在hash表中，dp的时候直接查询会比dp的时候动态查询哈希表，动态插入更快。。很奇怪。。
+
+> 最奇怪的是加了`dp[i][i] = 1`这行语句之后，程序运行速度反而更快了。。能提高20ms的速度。
+
+## 877. Stone Game
+
+**题意**：Alex和Lee玩N堆石子的游戏，N堆石子摆成一行，总的堆数是偶数，每堆石子`piles[i]`都是正数。
+
+谁最终拿到的石子最多谁获胜。N堆石子的总数是奇数，保证不会出现平局的情况。
+
+Alex和Lee轮流拿石子，Alex先拿。每次拿的时候只能从最左边或者最右边拿完整的一堆石子。直到最后没有剩余的石子为止，石子最多的人获胜。
+
+假设Alex和Lee都是足够聪明的，如果Alex获胜，返回True。反之，返回False。
+
+数据范围：
+
+1. `2 <= piles.length <= 500`
+2. `piles.length` is even.
+3. `1 <= piles[i] <= 500`
+4. `sum(piles)` is odd.
+
+**思路**：简单博弈题。这种题的思路一般是先从小的数据开始考虑，然后进行推广。主要矛盾在于奇数堆的总和与偶数堆的总和。先手有必胜的策略。
+
+当然也可以使用dp来求解，这个是题解提供的解法。
+
+**Intuition**：
+
+Let's change the game so that whenever Lee scores points, it deducts from Alex's score instead.
+
+Let `dp(i, j)` be the largest score Alex can achieve where the piles remaining are `piles[i], piles[i+1], ..., piles[j]`. This is natural in games with scoring: we want to know what the value of each position of the game is.
+
+We can formulate a recursion for `dp(i, j)` in terms of `dp(i+1, j)` and `dp(i, j-1)`, and we can use dynamic programming to not repeat work in this recursion. (This approach can output the correct answer, because the states form a DAG (directed acyclic graph).)
+
+**Algorithm**：
+
+When the piles remaining are `piles[i], piles[i+1], ..., piles[j]`, the player who's turn it is has at most 2 moves.
+
+The person who's turn it is can be found by comparing `j-i` to `N` modulo 2.
+
+If the player is Alex, then she either takes `piles[i]` or `piles[j]`, increasing her score by that amount. Afterwards, the total score is either `piles[i] + dp(i+1, j)`, or `piles[j] + dp(i, j-1)`; and we want the maximum possible score.
+
+If the player is Lee, then he either takes `piles[i]` or `piles[j]`, decreasing Alex's score by that amount. Afterwards, the total score is either `-piles[i] + dp(i+1, j)`, or `-piles[j] + dp(i, j-1)`; and we want the *minimum* possible score.
+
+    class Solution {
+    public:
+        bool stoneGame(vector<int>& piles) {
+            int N = piles.size();
+
+            // dp[i+1][j+1] = the value of the game [piles[i], ..., piles[j]]
+            int dp[N+2][N+2];
+            memset(dp, 0, sizeof(dp));
+
+            for (int size = 1; size <= N; ++size)
+                for (int i = 0, j = size - 1; j < N; ++i, ++j) {
+                    int parity = (j + i + N) % 2;  // j - i - N; but +x = -x (mod 2)
+                    if (parity == 1)
+                        dp[i+1][j+1] = max(piles[i] + dp[i+2][j+1], piles[j] + dp[i+1][j]);
+                    else
+                        dp[i+1][j+1] = min(-piles[i] + dp[i+2][j+1], -piles[j] + dp[i+1][j]);
+                }
+
+            return dp[1][N] > 0;
+        }
+    };
+
+这实际上用dp实现的min-max算法的过程。一个人走DAG min的分支，一个人走max的分支。
+
+## 881. Boats to Save People
+
+**题意**:第i个人的体重是`people[i]`，每艘船可以承载的最大重量为`limit`。每艘船最多可以同时载两个人，这两个人的体重不能超过最大载重。
+
+求最小的船只数量能够载下每个人。(保证每个人都能被一艘船载下，即答案是存在的)
+
+数据范围：
+
+1. `1 <= people.length <= 50000`
+2. `1 <= people[i] <= limit <= 30000`
+
+**思路**：肯定是先要排序的。然后先放重量大的人，因为最多放两个人，所以剩下的空隙去放重量最小的人。自然想到双指针。
+
+代码如下：
+
+    class Solution {
+    public:
+        int numRescueBoats(vector<int>& people, int limit) {
+            sort(people.begin(), people.end());
+            int num = 0, l = 0, r = people.size() - 1;
+            while(l <= r)
+            {
+                int load = 0;
+                if(load + people[r] <= limit) load += people[r], r--;
+                if(load + people[l] <= limit) load += people[l], l++;
+                num++;
+            }
+            return num;
+        }
+    };
+
+## 885. Spiral Matrix III
+
 **题意**：
