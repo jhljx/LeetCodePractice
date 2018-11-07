@@ -1842,4 +1842,343 @@ If the player is Lee, then he either takes `piles[i]` or `piles[j]`, decreasing 
 
 ## 885. Spiral Matrix III
 
-**题意**：
+**题意**：给定二维矩阵的行数R和列数C，矩阵中的数字是`1~R*C`，然后填数字的时候按照旋转矩阵的方式顺时针填数。返回按顺序填数的每个数字的坐标的数组。
+
+例如：
+
+Input: R = 1, C = 4, r0 = 0, c0 = 0  
+Output: [[0,0],[0,1],[0,2],[0,3]]  
+![](https://s3-lc-upload.s3.amazonaws.com/uploads/2018/08/24/example_1.png)
+
+Input: R = 5, C = 6, r0 = 1, c0 = 4  
+Output: [[1,4],[1,5],[2,5],[2,4],[2,3],[1,3],[0,3],[0,4],[0,5],[3,5],[3,4],[3,3],[3,2],[2,2],[1,2],[0,2],[4,5],[4,4],[4,3],[4,2],[4,1],[3,1],[2,1],[1,1],[0,1],[4,0],[3,0],[2,0],[1,0],[0,0]]  
+![](https://s3-lc-upload.s3.amazonaws.com/uploads/2018/08/24/example_2.png)
+
+数据范围：
+
+1. `1 <= R <= 100`
+2. `1 <= C <= 100`
+3. `0 <= r0 < R`
+4. `0 <= c0 < C`
+
+**思路**：旋转矩阵的加强版。自己当时写的比较复杂。
+
+其实**最关键的是**找到步数的规律，可以发现步数是`1,1,2,2,3,3,4,4,...`这样的序列。然后按照4个方向依次去走相应的步数即可。然后保证找到的位置是在矩阵里面即可。
+
+官方题解，自己用C++重写了一下：
+
+    class Solution {
+    public:
+        vector<vector<int>> spiralMatrixIII(int R, int C, int r0, int c0) {
+            //R = 5, C = 6, r0 = 1, c0 = 4;
+            vector<vector<int>> res;
+            int d[][2] = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+            res.push_back({r0, c0});
+            if(R * C == 1) return res;
+            for(int k = 1; k < 2 * (R + C); k += 2)
+            {
+                for(int i = 0; i < 4; i++)
+                {
+                    int dk = k + (i / 2);
+                    for(int j = 0; j < dk; j++)
+                    {
+                        r0 += d[i][0];
+                        c0 += d[i][1];
+                        if(r0 >= 0 && r0 < R && c0 >= 0 && c0 < C)
+                        {
+                            res.push_back({r0, c0});
+                            if(res.size() == R * C) return res;
+                        }
+                    }
+                }
+            }
+            return res;
+        }
+    };
+
+关于其中最外层循环k的上界为`2 * (R + C)`的解释，最坏的情况是起始点在某个顶点位置，然后最大的值在对角线的顶点位置上。然后k每次增加2，最后最大的位置就是`2* (R + C)`。但实际上这样是不必要的，只要统计插入返回数组中的数字的个数即可。
+
+别人的一种更简洁的写法：
+
+    class Solution
+    {
+    public:
+        vector<vector<int>> spiralMatrixIII(int R, int C, int r0, int c0)
+        {
+            //1 1 2 2 3 3 4 4 5 5 6 6
+            //0 1 2 3 4 5 6 8 7 8 9 10* increase if it is in the odd number
+            int rpos = r0, cpos = c0, dir = 0, go = 1;
+            int cnt = 0, ans_cnt = 0;
+            int dr[4] = {0, 1, 0, -1};
+            int dc[4] = {1, 0, -1, 0};
+            vector<vector<int>> res;
+            //push back the start position
+            res.push_back({rpos, cpos});
+            ans_cnt++;
+            while(ans_cnt < R * C)
+            {
+                for(int i = 1;i <= go; i++)
+                {
+                    rpos += dr[dir];
+                    cpos += dc[dir];
+                    if(rpos >= 0 && rpos < R && cpos >=0 && cpos < C) //push back th eanswer if it is in the grid
+                    {
+                        res.push_back({rpos, cpos});
+                        ans_cnt++;
+                    }
+                }
+                if(cnt & 1) //to make  1 1 2 2 3 3 4 4 5 5 sequence
+                {
+                    go++;
+                }
+                cnt++;
+                dir++;
+                dir %= 4; //change direction
+            }
+            return res;
+        }
+    };
+
+自己最原始的代码如下，没有构造步数序列，而是使用vis数组去间接判断步数。
+
+    class Solution {
+    public:
+        vector<vector<int>> spiralMatrixIII(int R, int C, int r0, int c0) {
+            vector<vector<int>> res;
+            vector<vector<int>> vis(R, vector<int>(C, 0));
+            int x = r0, y = c0, num = 1;
+            vis[x][y] = 1;
+            res.push_back({x, y});
+            int dir[][2] = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+            int t = 0;
+            int idx = 0;
+            while(num < R * C)
+            {
+                int px = x + dir[t][0], py = y + dir[t][1];
+                if(isin(px, py, R, C) && !vis[px][py])
+                {
+                    vis[px][py] = 1;
+                    num++;
+                    res.push_back({px, py});
+                    x = px, y = py;
+                    t = (t + 1) % 4;
+                }
+                else if(isin(px, py, R, C))
+                {
+                    t = ((t - 1) % 4 + 4) % 4;
+                    px = x + dir[t][0], py = y + dir[t][1];
+                    while(isin(px, py, R, C) && vis[px][py]) px += dir[t][0], py += dir[t][1];
+                    if(isin(px, py, R, C) && !vis[px][py]) x = px - dir[t][0], y = py - dir[t][1];
+                }
+                else
+                {
+                    t = (t + 1) % 4;
+                    px = x + dir[t][0], py = y + dir[t][1];
+                    while(isin(px, py, R, C) && vis[px][py]) px += dir[t][0], py += dir[t][1];
+                    x = px - dir[t][0], y = py - dir[t][1];
+                }
+            }
+            return res;
+        }
+        bool isin(int x, int y, int R, int C)
+        {
+            return x >= 0 && x < R && y >= 0 && y < C;
+        }
+    };
+
+## 889. Construct Binary Tree from Preorder and Postorder Traversal
+
+**题意**：根据给出的二叉树的先序遍历和后序遍历数组，构造任意一个可能的二叉树。
+
+保证先序遍历数组和后序遍历数组的数字互不相同。
+
+**思路**：直接实现即可。注意要计算好每次划分的子区间的左右边界，防止出错。先序遍历是先遍历该节点，然后遍历左子树，然后遍历右子树。因此只需要在先序序列中找到左子树根节点，然后去后序序列中找到左子树根节点的位置，然后就可以根据在后序序列中的位置确定左子树的节点数量。然后就可以划分子区间了。
+
+代码如下：
+
+    /**
+    * Definition for a binary tree node.
+    * struct TreeNode {
+    *     int val;
+    *     TreeNode *left;
+    *     TreeNode *right;
+    *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+    * };
+    */
+    class Solution {
+    public:
+        TreeNode* constructFromPrePost(vector<int>& pre, vector<int>& post) {
+            int sz = pre.size();
+            return construct(pre, post, 0, sz - 1, 0, sz - 1);
+        }
+
+        TreeNode* construct(vector<int>& pre, vector<int>& post, int prel, int prer, int postl, int postr)
+        {
+            if(prel > prer || postl > postr) return NULL;
+            TreeNode *root = new TreeNode(pre[prel]);
+            //cout << prel << " " << prer << ", " << postl << " " << postr << ", " << pre[prel] << endl;
+            if(prel == prer || postl == postr)
+                return root;
+            int pos = 0;
+            for(int i = postl; i < postr; i++) if(post[i] == pre[prel + 1]) {pos = i; break;}
+            int lnum = pos - postl + 1;
+            root -> left = construct(pre, post, prel + 1, prel + lnum, postl, pos);
+            root -> right = construct(pre, post, prel + lnum + 1, prer, pos + 1, postr - 1);
+            return root;
+        }
+    };
+
+## 890. Find and Replace Pattern
+
+**题意**：你有一个单词的列表`words`和一个模板字符串`pattern`，你想知道单词列表中哪个单词能够和模板字符串`pattern`相匹配？
+
+一个单词和一个模板匹配当且仅当存在一个字母的双射函数p(每个字母都映射成另一个字母，所有26个字母映射前后构成这26个字母的排列)，通过单词中的每个字母`x`做映射变换`p(x)`，可以得到模板串。
+
+返回满足条件的单词的列表。
+
+数据范围：
+
+- `1 <= words.length <= 50`
+- `1 <= pattern.length = words[i].length <= 20`
+
+**思路**：只要维护双射的哈希表即可。
+
+代码如下：
+
+    class Solution {
+    public:
+        vector<string> findAndReplacePattern(vector<string>& words, string pattern) {
+            vector<string> res;
+            for(auto word: words)
+            {
+                unordered_map<char, char> phash, rhash;
+                if(word.length() != pattern.length()) continue;
+                int flag = 1;
+                for(int i = 0; i < word.length(); i++)
+                {
+                    if(!phash.count(word[i]) && !rhash.count(pattern[i])) phash[word[i]] = pattern[i], rhash[pattern[i]] = word[i];
+                    else if(phash[word[i]] != pattern[i] || rhash[pattern[i]] != word[i]) {flag = 0; break;}
+                }
+                if(flag)
+                    res.push_back(word);
+            }
+            return res;
+        }
+    };
+
+自己的上述思路是维护两个哈希表，官方的题解上还提供了只维护一个哈希表的解法。题解的Java代码如下：
+
+    class Solution {
+        public List<String> findAndReplacePattern(String[] words, String pattern) {
+            List<String> ans = new ArrayList();
+            for (String word: words)
+                if (match(word, pattern))
+                    ans.add(word);
+            return ans;
+        }
+
+        public boolean match(String word, String pattern) {
+            Map<Character, Character> M = new HashMap();
+            for (int i = 0; i < word.length(); ++i) {
+                char w = word.charAt(i);
+                char p = pattern.charAt(i);
+                if (!M.containsKey(w)) M.put(w, p);
+                if (M.get(w) != p) return false;
+            }
+
+            boolean[] seen = new boolean[26];
+            for (char p: M.values()) {
+                if (seen[p - 'a']) return false;
+                seen[p - 'a'] = true;
+            }
+            return true;
+        }
+    }
+
+实际上相当于使用一个hash表之后，判断hash的value是否会出现重复。这样也是可以的。
+
+## 900. RLE Iterator
+
+**题意**：实现一个在扫描长度被编码的序列上进行迭代的迭代器。迭代器使用`RLEIterator(int[] A)`，其中`A`是某个扫描长度被编码的序列。更具体的是，A的偶数位的数字`A[i]`告诉我们`A[i+1]`那个奇数位置上的非负数值在序列中重复出现了多少次。
+
+迭代器支持一个函数`next(int n)`，这个函数会向后遍历n(n >= 1)个数字，然后返回最后一个元素。如果遍历完之后不存在元素，返回-1。
+
+例如：我们从`A=[3, 8, 0, 9, 2, 5]`，对应的序列是`[8, 8, 8, 5, 5]`，因为序列可以读做“3个8，0个9，2个5”。
+
+例子：
+
+**Input**: ["RLEIterator","next","next","next","next"], [[[3,8,0,9,2,5]],[2],[1],[1],[2]]  
+**Output**: [null,8,8,5,-1]  
+**Explanation**:  
+RLEIterator is initialized with RLEIterator([3,8,0,9,2,5]).
+This maps to the sequence [8,8,8,5,5].  
+RLEIterator.next is then called 4 times:  
+
+.next(2) exhausts 2 terms of the sequence, returning 8.  The remaining sequence is now [8, 5, 5].
+
+.next(1) exhausts 1 term of the sequence, returning 8.  The remaining sequence is now [5, 5].
+
+.next(1) exhausts 1 term of the sequence, returning 5.  The remaining sequence is now [5].
+
+.next(2) exhausts 2 terms, returning -1.  This is because the first term exhausted was 5, but the second term did not exist.  Since the last term exhausted does not exist, we return -1.
+
+数据范围：
+
+1. `0 <= A.length <= 1000`
+2. `A.length` is an even integer.
+3. `0 <= A[i] <= 10^9`
+4. There are at most `1000` calls to `RLEIterator.next(int n)` per test case.
+5. Each call to `RLEIterator.next(int n)` will have `1 <= n <= 10^9`.
+
+**思路**：直接模拟就好了。
+
+代码如下：
+
+    class RLEIterator {
+    public:
+        RLEIterator(vector<int> A) {
+            tot = idx = 0;
+            for(int i = 0; i < A.size(); i += 2)
+            {
+                if(A[i] > 0)
+                {
+                    cnts.push_back(A[i]);
+                    int sz = cnts.size();
+                    if(sz >= 2) cnts[sz - 1] += cnts[sz - 2];
+                    nums.push_back(A[i + 1]);
+                }
+            }
+        }
+
+        int next(int n) {
+
+            for(int i = idx; i < cnts.size() && n; i++)
+            {
+                int rem = cnts[i] - tot;
+                if(rem < n)
+                {
+                    tot = cnts[i];
+                    n -= rem;
+                }
+                else
+                {
+                    tot += n;
+                    n = 0;
+                    idx = i;
+                }
+            }
+            if(n) return -1;
+            return nums[idx];
+        }
+
+        int idx;
+        long long tot;
+        vector<int> nums;
+        vector<long long> cnts;
+    };
+
+    /**
+    * Your RLEIterator object will be instantiated and called as such:
+    * RLEIterator obj = new RLEIterator(A);
+    * int param_1 = obj.next(n);
+    */

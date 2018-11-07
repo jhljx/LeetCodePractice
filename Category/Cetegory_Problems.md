@@ -17,6 +17,7 @@
 ## Simulation
 
 - 885\. Spiral Matrix III(不好写)
+- 900\. RLE Iterator
 
 ## Games
 
@@ -32,6 +33,7 @@
 - 822\. Card Flipping Game
 - 823\. Binary Trees With Factors
 - 825\. Friends Of Appropriate Ages
+- 890\. Find and Replace Pattern
 
 ## Stack
 
@@ -58,6 +60,7 @@
 - 655\. Print Binary Tree
 - 814\. Binary Tree Pruning
 - 865\. Smallest Subtree with all the Deepest Nodes(好题)
+- 889\. Construct Binary Tree from Preorder and Postorder Traversal
 
 ## Trie
 
@@ -118,6 +121,7 @@
 - 823\. Binary Trees With Factors
 - 873\. Length of Longest Fibonacci Subsequence(好题)
 - 877\. Stone Game
+- 935\. Knight Dialer
 
 ## Sliding Window
 
