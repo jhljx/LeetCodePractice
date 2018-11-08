@@ -347,11 +347,48 @@ LeetCode提供的官方题解：[https://leetcode.com/problems/longest-palindrom
         }
     };
 
+## 43. Multiply Strings  
+
+**题意**：手动实现高精度乘法。
+
 ## 46. Permutations
 
 **题意**：给你一个不包含重复数字的集合，返回该集合所有可能的排列。
 
 **思路**：DFS搜索全排列。需要一个记录已经使用了哪些数字的vector。然后回溯。
+
+自己的代码如下：
+
+    class Solution {
+    public:
+        vector<vector<int>> permute(vector<int>& nums) {
+            vector<vector<int>> res;
+            vector<int> tmp, flag(nums.size(), 0);
+            dfs(nums, flag, tmp, res);
+            return res;
+        }
+        
+        void dfs(vector<int>& nums, vector<int>& flag, vector<int>& tmp, vector<vector<int>>& res)
+        {
+            int check = 1;
+            for(int i = 0; i < nums.size(); i++)
+            {
+                if(!flag[i])
+                {
+                    check = 0;
+                    flag[i] = 1;
+                    tmp.push_back(nums[i]);
+                    dfs(nums, flag, tmp, res);
+                    flag[i] = 0;
+                    tmp.pop_back();
+                }
+            }
+            if(check)
+            {
+                res.push_back(tmp);
+            }
+        }
+    };
 
 ## 47. Permutations II
 
@@ -359,11 +396,70 @@ LeetCode提供的官方题解：[https://leetcode.com/problems/longest-palindrom
 
 **思路**：DFS搜索全排列。先用unordered_map预处理，防止全排列重复。因为一个位置上只能放不相同的数字才不会导致重复。然后回溯。
 
+自己的代码如下：
+
+    class Solution {
+    public:
+        vector<vector<int>> permuteUnique(vector<int>& nums) {
+            vector<vector<int>> res;
+            unordered_map<int, int> umap;
+            vector<int> tmp;
+            for(int i = 0; i < nums.size(); i++) umap[nums[i]]++;
+            dfs(nums, umap, tmp, res);
+            return res;
+        }
+        
+        void dfs(vector<int>& nums, unordered_map<int, int>& umap, vector<int>& tmp, vector<vector<int>>& res)
+        {
+            int check = 1;
+            for(auto it = umap.begin(); it != umap.end(); it++)
+            {
+                int num = it -> first, &cnt = it -> second;
+                if(cnt)
+                {
+                    cnt--;
+                    check = 0;
+                    tmp.push_back(num);
+                    dfs(nums, umap, tmp, res);
+                    cnt++;
+                    tmp.pop_back();
+                }
+            }
+            if(check)
+                res.push_back(tmp);
+        }
+    };
+
 ## 48. Rotate Image
 
 **题意**：给你一个n \* n的2D矩阵，让你把这个顺时针旋转90度。必须是**就地旋转**，而不能新开辟一个二维数组。
 
 **思路**：不能直接覆盖去旋转，只能考虑矩阵元素之间的交换。然后想到先求出矩阵转置，然后再每一行互换对称位置的元素即可。
+
+代码如下：
+
+    class Solution {
+    public:
+        void rotate(vector<vector<int>>& matrix) {
+            int n = matrix.size();
+            if(!n) return;
+            int m = matrix[0].size();
+            for(int i = 0; i < n; i++)
+            {
+                for(int j = 0; j < i; j++)
+                {
+                    swap(matrix[i][j], matrix[j][i]);
+                }
+            }
+            for(int i = 0; i < n; i++)
+            {
+                for(int j = 0; j <= (m - 1) / 2; j++)
+                {
+                    swap(matrix[i][j], matrix[i][m - 1 - j]);
+                }
+            }
+        }
+    };
 
 ## 49. Group Anagrams
 

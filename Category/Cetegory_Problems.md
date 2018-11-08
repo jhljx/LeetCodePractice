@@ -34,6 +34,7 @@
 - 823\. Binary Trees With Factors
 - 825\. Friends Of Appropriate Ages
 - 890\. Find and Replace Pattern
+- 930\. Binary Subarrays With Sum
 
 ## Stack
 
@@ -84,6 +85,10 @@
 - 81\. Search in Rotated Sorted Array II
 - 153\. Find Minimum in Rotated Sorted Array
 
+## Divide and Conquer
+
+- 932\. Beautiful Array (Google onsite)
+
 ## Two pointers
 
 - 658\. Find K Closest Elements
@@ -122,6 +127,7 @@
 - 823\. Binary Trees With Factors
 - 873\. Length of Longest Fibonacci Subsequence(好题)
 - 877\. Stone Game
+- 931\. Minimum Falling Path Sum
 - 935\. Knight Dialer
 
 ## Sliding Window

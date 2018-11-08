@@ -1,5 +1,169 @@
 # Problem 901~1200 Medium
 
+## 901. Online Stock Span
+
+**题意**：
+
+## 904. Fruit Into Baskets
+
+**题意**：
+
+## 907. Sum of Subarray Minimums
+
+**题意**：
+
+## 909. Snakes and Ladders
+
+**题意**：
+
+## 910. Smallest Range II
+
+**题意**：
+
+## 911. Online Election
+
+**题意**：
+
+## 915. Partition Array into Disjoint Intervals
+
+**题意**：
+
+## 916. Word Subsets
+
+**题意**：
+
+## 918. Maximum Sum Circular Subarray
+
+**题意**：
+
+## 919. Complete Binary Tree Inserter
+
+**题意**：
+
+## 921. Minimum Add to Make Parentheses Valid
+
+**题意**：
+
+
+## 923. 3Sum With Multiplicity
+
+**题意**：给你一个
+
+**思路**：
+
+代码如下：
+
+    class Solution {
+    public:
+        int threeSumMulti(vector<int>& A, int target) {
+            int n = A.size();
+            unordered_map<int, int> valhash, sumhash;
+            long long ans = 0;
+            const int mod = 1e9 + 7;
+            for(int i = 0; i < n; i++)
+            {
+                for(auto it = sumhash.begin(); it != sumhash.end(); it++)
+                {
+                    int rem = target - it -> first, cnt = it -> second;
+                    if(rem == A[i])
+                        ans = (ans + cnt) % mod;
+                }
+                for(auto it = valhash.begin(); it != valhash.end(); it++)
+                {
+                    int sum = A[i] + it -> first, cnt = it -> second;
+                    if(sum <= target)
+                        sumhash[sum] += cnt;
+                }
+                valhash[A[i]]++;
+            }
+            return ans;
+        }
+    };
+
+## 926. Flip String to Monotone Increasing 
+
+**题意**：
+
+## 930. Binary Subarrays With Sum
+
+**题意**：给你一个只包含`0`和`1`的数组`A`，问你A中有多少个**非空子数组**的和是`S`？
+
+例子：
+
+**Input**: A = [1,0,1,0,1], S = 2  
+**Output**: 4  
+**Explanation**:  
+The 4 subarrays are bolded below:  
+[1,0,1,0,1]  
+[1,0,1,0,1]  
+[1,0,1,0,1]  
+[1,0,1,0,1]  
+
+数据范围：
+
+1. `A.length <= 30000`
+2. `0 <= S <= A.length`
+3. `A[i] is either 0 or 1`
+
+**思路**：前缀和和hash，很容易想到。
+
+代码如下：
+
+    class Solution {
+    public:
+        int numSubarraysWithSum(vector<int>& A, int S) {
+            int n = A.size();
+            vector<int> sum(n + 1, 0);
+            unordered_map<int, int> umap;
+            umap[0]++;
+            int ans = 0;
+            for(int i = 1; i <= n; i++)
+            {
+                sum[i] = sum[i - 1] + A[i - 1];
+                int pre = sum[i] - S;
+                ans += umap[pre];
+                umap[sum[i]]++;
+            }
+            return ans;
+        }
+    };
+
+
+## 931. Minimum Falling Path Sum
+
+题意：给你一个整数的方阵A，让你最小化A的`falling path`的sum和。
+
+一个`falling path`是从第一行的任意一个数字开始，然后往下，每次选择下一行的列时，列号只能在当前这个位置的列号基础上变化`[-1, 1]`（相当于最多有三种转移方式）。
+
+思路：水dp，没啥说的。
+
+代码如下：
+
+    class Solution {
+    public:
+        int minFallingPathSum(vector<vector<int>>& A) {
+            int n = A.size(), m = A[0].size();
+            for(int i = 1; i < n; i++)
+            {
+                for(int j = 0; j < m; j++)
+                {
+                    int res = 1e9;
+                    for(int k = -1; k <= 1; k++)
+                    {
+                        if(j + k >= 0 && j + k < m)
+                        {
+                            res = min(res, A[i - 1][j + k]);
+                        }
+                    }
+                    A[i][j] += res;
+                }
+            }
+            int ans = 1e9;
+            for(int j = 0; j < m; j++) ans = min(ans, A[n - 1][j]);
+            return ans;
+        }
+    };
+
 ## 932. Beautiful Array
 
 **题意**：一个长度为N的整数数组，其中的数字是`1,2,3，..., N`。如果这个数组对于任意的 `0 <= i < k < j < N`, 都有`A[k] * 2 != A[i] + A[j]`，则这个数组是beautiful的。
