@@ -102,7 +102,7 @@ This is detected by the Floyd's cycle-finding algorithm: two nodes $i$ and $j$ (
 
 ### Algorithm
 
-The algorithm takes as its inputs $n$, the integer to be factored; and $g(x)$, a polynomial in $x$ computed modulo $n$. In the original algorithm, $g(x)=(x^{2}-1) bmod n$, but nowadays it is more common to use $g(x)=(x^{2}+1) \bmod n$. The output is either a non-trivial factor of $n$, or failure. It performs the following steps:
+The algorithm takes as its inputs $n$, the integer to be factored; and $g(x)$, a polynomial in $x$ computed modulo $n$. In the original algorithm, $g(x)=(x^{2}-1) \bmod n$, but nowadays it is more common to use $g(x)=(x^{2}+1) \bmod n$. The output is either a non-trivial factor of $n$, or failure. It performs the following steps:
 
     x ← 2; y ← 2; d ← 1
         while d = 1:
