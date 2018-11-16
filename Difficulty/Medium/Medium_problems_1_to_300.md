@@ -896,6 +896,27 @@ class Solution {
     }
 }
 
+自己用C++再实现一遍：
+
+    class Solution {
+    public:
+        int findDuplicate(vector<int>& nums) {
+            int tortoise = nums[0];
+            int hare = nums[0];
+            do {
+                tortoise = nums[tortoise];
+                hare = nums[nums[hare]];
+            } while (tortoise != hare);
+            int x = nums[0], y = hare;
+            while(x != y)
+            {
+                x = nums[x];
+                y = nums[y];
+            }
+            return x;
+        }
+    };
+
 下面这个是一个用python写的版本，前面的讲解也比较清晰。
 [http://keithschwarz.com/interesting/code/?dir=find-duplicate](http://keithschwarz.com/interesting/code/?dir=find-duplicate)
 
