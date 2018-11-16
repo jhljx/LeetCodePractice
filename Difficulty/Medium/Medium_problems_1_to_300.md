@@ -899,4 +899,4 @@ class Solution {
 下面这个是一个用python写的版本，前面的讲解也比较清晰。
 [http://keithschwarz.com/interesting/code/?dir=find-duplicate](http://keithschwarz.com/interesting/code/?dir=find-duplicate)
 
-具体的关于Cycle Detection算法的讲解详见[Cycle Detection](/InterestingAlgorithm/CycleDetection.md)
+具体的关于Cycle Detection算法的讲解详见[Cycle Detection](/InterestingAlgorithms/CycleDetection.md)
