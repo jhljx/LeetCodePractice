@@ -831,3 +831,72 @@ n = 13, 13 = 4 + 9。答案为2。
             return 3;  
         }  
     };
+
+## 287. Find the Duplicate Number
+
+**题意**：给你一个数组有N+1个元素，它们的范围是\[1, N]。假设这里面只有一个重复的元素，让你找出这个重复的元素。
+
+例子：
+
+Input: [1,3,4,2,2]  
+Output: 2  
+
+Input: [3,1,3,4,2]  
+Output: 3  
+
+数据范围：
+
+1. 你不能修改数组元素，假设数组元素是只读的
+2. 你只能使用常数O(1)的空间
+3. 你的运行时间必须小于O(N^2)
+4. 只有一个重复元素，但是有可能重复很多次
+
+**思路**：这个有点类似于之前做过的把每个数组都挪到自己对应的位置上面去。但是有重复数字的话，在挪数字的时候判断一下要交换的两个位置的数字是不是相等。如果相等的话，说明找到了，可以直接return。其实可以循环sz次，但是肯定能够在循环内return。出了循环在return是不可能的。这里为了保证出循环还能正确return，所以循环sz - 1次。
+
+自己的代码如下：
+
+    class Solution {
+    public:
+        int findDuplicate(vector<int>& nums) {
+            int sz = nums.size(), n = sz - 1;
+            for(int i = 0; i < n; i++)
+            {
+                while(nums[i] <= n && nums[i] != i + 1)
+                    if(nums[i] == nums[nums[i] - 1]) return nums[i];
+                    else swap(nums[i], nums[nums[i] - 1]);
+            }
+            return nums[sz - 1];
+        }
+    };
+
+这道题自己的思路来自于41题（Hard）的将每个元素放到自己指定位置的思路。时间复杂度O(N)。
+
+官方题解的思路是讲这道题转换成链表判环的问题（LeetCode 142, Medium），然后用Floyd's Tortoise and Hare Algorithm去求解。
+
+题解给的Java代码如下：
+
+class Solution {
+    public int findDuplicate(int[] nums) {
+        // Find the intersection point of the two runners.
+        int tortoise = nums[0];
+        int hare = nums[0];
+        do {
+            tortoise = nums[tortoise];
+            hare = nums[nums[hare]];
+        } while (tortoise != hare);
+
+        // Find the "entrance" to the cycle.
+        int ptr1 = nums[0];
+        int ptr2 = tortoise;
+        while (ptr1 != ptr2) {
+            ptr1 = nums[ptr1];
+            ptr2 = nums[ptr2];
+        }
+        return ptr1;
+    }
+}
+
+下面这个是一个用python写的版本，前面的讲解也比较清晰。
+[http://keithschwarz.com/interesting/code/?dir=find-duplicate](http://keithschwarz.com/interesting/code/?dir=find-duplicate)
+
+具体的关于Cycle Detection算法的讲解详见[Cycle Detection](/InterestingAlgorithm/CycleDetection.md)

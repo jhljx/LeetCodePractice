@@ -9,10 +9,24 @@
 
 - 816\. Ambiguous Coordinates
 - 835\. Image Overlap
+- 910\. Smallest Range II(枚举)
+
+## Cycle Detection
+
+- 142\. Linked List Cycle II
+- 287\. Find the Duplicate Number
 
 ## Math
 
 - 858\. Mirror Reflection(好题)
+
+## Prefix-Sum
+
+- 926\. Flip String to Monotone Increasing
+
+## XSum
+
+- 923\. 3Sum With Multiplicity
 
 ## Simulation
 
@@ -34,12 +48,33 @@
 - 823\. Binary Trees With Factors
 - 825\. Friends Of Appropriate Ages
 - 890\. Find and Replace Pattern
+- 911\. Online Election
+- 916\. Word Subsets
 - 930\. Binary Subarrays With Sum
 
 ## Stack
 
 - 654\. Maximum Binary Tree(笛卡尔树)
 - 856\. Score of Parentheses
+- 901\. Online Stock Span (单调栈)
+
+## Queue
+
+- 918\. Maximum Sum Circular Subarray(单调队列)
+- 919\. Complete Binary Tree Inserter
+
+## Map
+
+- 911\. Online Election(好题)
+
+## Left-Right Array(Same as Monotonous stack)
+
+- 901\. Online Stock Span
+- 907\. Sum of Subarray Minimums
+
+## Next Array
+
+- 915\. Partition Array into Disjoint Intervals
 
 ## Strings
 
@@ -62,6 +97,7 @@
 - 814\. Binary Tree Pruning
 - 865\. Smallest Subtree with all the Deepest Nodes(好题)
 - 889\. Construct Binary Tree from Preorder and Postorder Traversal
+- 919\. Complete Binary Tree Inserter
 
 ## Trie
 
@@ -105,6 +141,11 @@
 - 841\. Keys and Rooms
 - 865\. Smallest Subtree with all the Deepest Nodes
 - 934\. Shortest Bridge(Flood Fill)
+- 938\. Range Sum of BST
+
+## BFS
+
+- 909\. Snakes and Ladders
 
 ## Greedy
 
@@ -127,6 +168,7 @@
 - 823\. Binary Trees With Factors
 - 873\. Length of Longest Fibonacci Subsequence(好题)
 - 877\. Stone Game
+- 926\. Flip String to Monotone Increasing
 - 931\. Minimum Falling Path Sum
 - 935\. Knight Dialer
 
@@ -134,3 +176,8 @@
 
 - 3\. Longest Substring Without Repeating Characters
 - 187\. Repeated DNA Sequences
+- 904\. Fruit Into Baskets
+
+## Linear Scan
+
+- 910\. Smallest Range II(错了很多次)
